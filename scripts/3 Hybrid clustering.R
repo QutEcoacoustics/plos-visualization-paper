@@ -1,0 +1,166 @@
+# Title:  Hybrid Clustering - plos one paper
+# Author: Yvonne Phillips
+# Date:  19 September 2016
+
+# Phillips, Y. F., Towsey, M., & Roe, P. (2018). Revealing the Ecological 
+# Content of Long-duration Audio-recordings of the Environment through 
+# Clustering and Visualisation. Plos One. 
+
+# Description:  This code applies a Hybrid method to cluster a large acoustic
+#   dataset.  The hybrid method involves three steps:
+#   1. Partition the dataset using k-means into a large number of clusters
+#   2. Apply hierarchical clustering to centroids from step 1 to reduce to
+#      a number of clusters to less than 100
+#   3. Assign all observations to the nearest centroid using knn (k-nearest-
+#      neighbour).
+#   The final number of clusters is determined by evaluating the 
+#   within-group similarity of sets of three days within a twelve day dataset.
+#   The twelve day dataset consists of three consecutive or near consecutive 
+#   days that show high similarity in the twenty-four hour spectrograms.  The
+#   clustering should maintain the similarity of the three days which should be
+#   distinct from another three day set.  
+# Note:  the code that generated the normalised .Rdata files 
+# see the end of code
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# Load the SUMMARY indices ---------------------
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# remove all objects in the global environment
+rm(list = ls())
+
+# load normalised summary indices 
+load(file="C:\\plos-visualization-paper\\results\\Gympie_woondum_normalised_summary_indices.RData")
+indices_norm_summary <- complete_DF
+
+#indices_norm_summary <- read.csv("C:/plos-visualization-paper/results/Gympie_woondum_normalised_summary_indices.csv", header = T)
+colnames(indices_norm_summary)
+length(indices_norm_summary[,1])
+
+colnames <- c("BGN", "SNR", "ACT",
+              "EVN", "HFC", "MFC",
+              "LFC", "ACI", "EAS",
+              "EPS", "ECV", "CLC")
+colnames(indices_norm_summary) <- colnames
+# remove the missing minutes and track the original minutes
+# a is the missing minutes and z is the recorded minutes
+a <- which(is.na(indices_norm_summary$BGN))
+length(a) # this is 773 + 4320 (3 days) = 5093
+
+z <- setdiff(1:nrow(indices_norm_summary), a)
+
+# remove the missing minutes and the three days in October 2015
+# this dataset should have 1141147 rows (nrows(indices_norm_summary))
+# these will be replaced later
+indices_norm_summary <- indices_norm_summary[z,]
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# Hybrid Method -------------------------------
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#Step 1 Partitioning using kmeans
+
+#set-up the variables
+k1 <- i <- c(17500, 20000, 22500, 25000)
+k2 <- seq(5, 100, 5)
+
+k1 <- 25000
+
+# The kmeans clustering takes between 1.5 and 1.75 hours for each 
+# k1 value so I have set this to only complete k1=25000 (#4)
+# to run each of the k1 values change line 52 to for(k in 1:4) {
+paste(Sys.time(), " Starting kmeans clustering", sep = " ")
+for (k in 1:1) {
+  set.seed(123)
+  kmeansObj <- kmeans(indices_norm_summary, centers = k1[k], iter.max = 100)
+  print(Sys.time())
+  list <- c("clusters","centers","totss","withinss","totwithinss",
+            "betweenss", "size", "iter", "ifault")
+  for(i in 1:length(list)){
+    list[i] <- paste(list[i],k1[k],sep = "")
+  }
+  for (i in 1:length(list)) {
+    assign(paste(list[i],sep = ""), kmeansObj[i])
+    save(list = list[i], file = paste("C:/plos-visualization-paper/results/kmeans", list[i],".Rdata",sep=""))
+  }
+  for (i in 1:length(list)) {
+    rm(list = list[i]) 
+  }
+}
+paste(Sys.time(), " End kmeans clustering", sep = " ")
+
+################################################
+# Step 2:  Hierarchical clustering of centers
+################################################
+paste(Sys.time(), "Starting hclust")
+folder <- "C:/plos-visualization-paper/results"
+
+kmeansCenters <- kmeansObj$centers
+kmeansCenters <- as.hclust(centers25000)
+
+# Hierarchically cluster the centers from kmeans
+paste(Sys.time(), "Starting hclust function")
+hybrid.fit.ward <- hclust(dist(kmeansCenters), method = "ward.D2")
+
+paste(Sys.time(), "Starting cutree function")
+
+# Note: The cutree function takes about 7 hours 
+# Every 12-35 minutes a file is saved in the results folder containing the 
+# cluster result for the k2 value and the cluster centroids. The cluster
+# centroids these remain acorss each k1 run
+clusters <- NULL
+for (j in k2) {
+  # cut the dendrogram into k2 clusters
+  hybrid.clusters <- cutree(hybrid.fit.ward, k=j)
+  # generate the test dataset
+  hybrid.dataset <- cbind(hybrid.clusters, kmeansCenters)
+  hybrid.dataset <- as.data.frame(hybrid.dataset)
+  write.csv(hybrid.dataset, paste("C:/plos-visualization-paper/results/hybrid_dataset_centers_", k1[k], "_", j,
+                                  ".csv",sep=""), row.names = FALSE)
+  train <- hybrid.dataset
+  test <- indices_norm_summary
+  # set up class labels
+  cl <- factor(unname(hybrid.clusters))
+  library(class)
+  # set the k value for the knn function 
+  k3 <- sqrt(floor(nrow(train)))
+  # if k3 is even, one is subtracted, odd numbers break ties
+  is.even <- function(x) x %% 2 == 0
+  if(is.even(k3)=="TRUE") {
+    k3 <- k3 - 1
+  }
+  
+  # Step 3:  Use knn to assign minutes to clusters ------
+  # The knn assignment takes a long time 
+  
+  clusts <- knn(train[,-1], test, cl, k = k3, prob = F)
+  clusters <- cbind(clusters, clusts)
+}
+paste(Sys.time(), "Ending the cutree function")
+
+colnames(clusters) <- c("clust5", "clust10","clust15","clust20",
+                        "clust25","clust30","clust35","clust40",
+                        "clust45","clust50","clust55","clust60",
+                        "clust65","clust70","clust75","clust80",
+                        "clust85","clust90","clust95","clust100")
+assign(paste("hclust_clusters_", k1[k], sep = ""), clusters)
+
+save(list = paste("hclust_clusters_", k1[k], sep = ""), 
+     file = paste("C:/plos-visualization-paper/results/hclust_clusters", 
+                  k1[k],".Rdata",sep=""))
+paste(Sys.time(), " Finishing hclust clustering", sep = " ")
+
+write.csv(clusters, "C:/plos-visualization-paper/results/cluster.csv", row.names=F)
+
+full_list <- matrix(NA, nrow=(398*1440*2), ncol=20)
+full_list <- data.frame(full_list)
+full_list[z,] <- clusters
+
+colnames <- c("clust5", "clust10", "clust15", "clust20",
+              "clust25", "clust30", "clust35", "clust40",
+              "clust45", "clust50", "clust55", "clust60",
+              "clust65", "clust70", "clust75", "clust80",
+              "clust85", "clust90", "clust95", "clust100")
+colnames(full_list) <- colnames
+write.csv(full_list, "C:/plos-visualization-paper/results/cluster_full_list.csv", row.names=F)
+
+# To view clusters
+#View(clusters)
