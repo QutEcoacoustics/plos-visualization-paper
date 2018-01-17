@@ -5,20 +5,19 @@
 # This code reads the summary indices and normalises and scales them.
 # Then a correlation matrix is calculated and this is saved in a results folder
 
-# Requirements
-# 1.  The files Gympie_20150622_20160723_Towsey_Indices.csv and
-#     Woondum_20150622_20160723_Towsey_Indices.csv containing 
-#     the summary acoustic indices are in folder 
-#     C:\plos-visualization-paper\
-# 2.  A folder named results is available in the 
-#     plos-visualization-paper folder
+# File and folder requirements (2 files and 1 folder): 
+# C:/plos-visualization-paper/data/Gympie_20150622_20160723_Towsey_Indices.csv
+# C:/plos-visualization-paper/data/Woondum_20150622_20160723_Towsey_Indices.csv
+# C:/plos-visualization-paper/results
 
-# remove all objects in global environment
-rm(list = ls())
+# Time requirements: about xxxx mintues
 
 ##############################################
 # Read Summary Indices
 ##############################################
+# remove all objects in global environment
+rm(list = ls())
+
 gympie_file <- "C:/plos-visualization-paper/data/Gympie_20150622_20160723_Towsey_Indices.csv"
 woondum_file <-"C:/plos-visualization-paper/data/Woondum_20150622_20160723_Towsey_Indices.csv"
 gympie_indices <- read.csv(gympie_file, header = T)
@@ -27,13 +26,12 @@ indices_all <- rbind(gympie_indices, woondum_indices)
 
 rm(gympie_file, woondum_file, gympie_indices, woondum_indices)
 
-##########################################
 ##############################################
 # Normalise the selected summary indices
 #############################################
 # The code that follows shows how the normalised summary indices file
 # were saved
-# remove redundant indices
+# remove highly correlated indices
 remove <- c(9,14)
 indices_all <- indices_all[,-remove]
 rm(remove)
@@ -50,6 +48,8 @@ paste("The dataset contains the following indices:"); colnames(indices_all)
 # load missing_minutes_summary
 #load(file="data/datasets/missing_minutes_summary_indices.RData")
 missing_minutes_summary <- which(is.na(indices_all[,1]))
+save(missing_minutes_summary, file="C:/plos-visualization-paper/data/missing_minutes_summary.RData")
+
 length(missing_minutes_summary)
 # There were 3 days where both microphones were not functioning correctly
 # following rain.  These days were the 28, 29 and 30 October 2015

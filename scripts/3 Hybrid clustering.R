@@ -2,25 +2,25 @@
 # Author: Yvonne Phillips
 # Date:  19 September 2016
 
-# Phillips, Y. F., Towsey, M., & Roe, P. (2018). Revealing the Ecological 
+# Phillips, Y.F., Towsey, M., & Roe, P. (2018). Revealing the Ecological 
 # Content of Long-duration Audio-recordings of the Environment through 
 # Clustering and Visualisation. Plos One. 
 
 # Description:  This code applies a Hybrid method to cluster a large acoustic
 #   dataset.  The hybrid method involves three steps:
 #   1. Partition the dataset using k-means into a large number of clusters
-#   2. Apply hierarchical clustering to centroids from step 1 to reduce to
-#      a number of clusters to less than 100
+#   2. Apply hierarchical clustering to centroids from step 1 to reduce the
+#      number of clusters to 5 to 100 in steps of 5.
 #   3. Assign all observations to the nearest centroid using knn (k-nearest-
 #      neighbour).
-#   The final number of clusters is determined by evaluating the 
-#   within-group similarity of sets of three days within a twelve day dataset.
-#   The twelve day dataset consists of three consecutive or near consecutive 
-#   days that show high similarity in the twenty-four hour spectrograms.  The
-#   clustering should maintain the similarity of the three days which should be
-#   distinct from another three day set.  
-# Note:  the code that generated the normalised .Rdata files 
-# see the end of code
+
+# File and requirements (1 file and 1 folder): 
+# Note: The file was generated in normalisation code and should already
+# be in the results folder
+# C:/plos-visualization-paper/results/Gympie_woondum_normalised_summary_indices.RData
+# C:/plos-visualization-paper/results
+
+# Time requirements: about 8-10 hours for each k1 cluster run
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # Load the SUMMARY indices ---------------------
@@ -29,10 +29,9 @@
 rm(list = ls())
 
 # load normalised summary indices 
-load(file="C:\\plos-visualization-paper\\results\\Gympie_woondum_normalised_summary_indices.RData")
+load(file="C:/plos-visualization-paper/results/Gympie_woondum_normalised_summary_indices.RData")
 indices_norm_summary <- complete_DF
 
-#indices_norm_summary <- read.csv("C:/plos-visualization-paper/results/Gympie_woondum_normalised_summary_indices.csv", header = T)
 colnames(indices_norm_summary)
 length(indices_norm_summary[,1])
 
@@ -44,8 +43,8 @@ colnames(indices_norm_summary) <- colnames
 # remove the missing minutes and track the original minutes
 # a is the missing minutes and z is the recorded minutes
 a <- which(is.na(indices_norm_summary$BGN))
-length(a) # this is 773 + 4320 (3 days) = 5093
-
+length(a) # length 5093 (773 + 4320 (3 days) minutes)
+# save a vector of the recorded minutes
 z <- setdiff(1:nrow(indices_norm_summary), a)
 
 # remove the missing minutes and the three days in October 2015
@@ -59,13 +58,11 @@ indices_norm_summary <- indices_norm_summary[z,]
 #Step 1 Partitioning using kmeans
 
 #set-up the variables
-k1 <- i <- c(17500, 20000, 22500, 25000)
+k1 <- i <- 25000   # other k1 values include 17500, 20000 and 22500
 k2 <- seq(5, 100, 5)
 
-k1 <- 25000
-
 # The kmeans clustering takes between 1.5 and 1.75 hours for each 
-# k1 value so I have set this to only complete k1=25000 (#4)
+# k1 value so I have set this to only complete k1=25000
 # to run each of the k1 values change line 52 to for(k in 1:4) {
 paste(Sys.time(), " Starting kmeans clustering", sep = " ")
 for (k in 1:1) {
@@ -113,8 +110,9 @@ for (j in k2) {
   # generate the test dataset
   hybrid.dataset <- cbind(hybrid.clusters, kmeansCenters)
   hybrid.dataset <- as.data.frame(hybrid.dataset)
-  write.csv(hybrid.dataset, paste("C:/plos-visualization-paper/results/hybrid_dataset_centers_", k1[k], "_", j,
-                                  ".csv",sep=""), row.names = FALSE)
+  write.csv(hybrid.dataset, 
+            paste("C:/plos-visualization-paper/results/hybrid_dataset_centers_", 
+                  k1[k], "_", j, ".csv",sep=""), row.names = FALSE)
   train <- hybrid.dataset
   test <- indices_norm_summary
   # set up class labels
@@ -122,7 +120,7 @@ for (j in k2) {
   library(class)
   # set the k value for the knn function 
   k3 <- sqrt(floor(nrow(train)))
-  # if k3 is even, one is subtracted, odd numbers break ties
+  # if k3 is even reduce by one to make odd
   is.even <- function(x) x %% 2 == 0
   if(is.even(k3)=="TRUE") {
     k3 <- k3 - 1
@@ -141,26 +139,32 @@ colnames(clusters) <- c("clust5", "clust10","clust15","clust20",
                         "clust45","clust50","clust55","clust60",
                         "clust65","clust70","clust75","clust80",
                         "clust85","clust90","clust95","clust100")
-assign(paste("hclust_clusters_", k1[k], sep = ""), clusters)
 
-save(list = paste("hclust_clusters_", k1[k], sep = ""), 
-     file = paste("C:/plos-visualization-paper/results/hclust_clusters", 
-                  k1[k],".Rdata",sep=""))
 paste(Sys.time(), " Finishing hclust clustering", sep = " ")
 
-write.csv(clusters, "C:/plos-visualization-paper/results/cluster.csv", row.names=F)
-
-full_list <- matrix(NA, nrow=(398*1440*2), ncol=20)
-full_list <- data.frame(full_list)
-full_list[z,] <- clusters
+# add the missing minutes back into the dataset
+full_cluster_DF <- matrix(NA, nrow = (398*1440*2), ncol=20)
+full_cluster_DF <- data.frame(full_cluster_DF)
+full_cluster_DF[z,] <- clusters
 
 colnames <- c("clust5", "clust10", "clust15", "clust20",
               "clust25", "clust30", "clust35", "clust40",
               "clust45", "clust50", "clust55", "clust60",
               "clust65", "clust70", "clust75", "clust80",
               "clust85", "clust90", "clust95", "clust100")
-colnames(full_list) <- colnames
-write.csv(full_list, "C:/plos-visualization-paper/results/cluster_full_list.csv", row.names=F)
+
+colnames(full_cluster_DF) <- colnames
+
+# assign to "hclust_clusters_k1" dataframe and save as a .RData file 
+assign(paste("hclust_clusters_", k1[k], sep = ""), full_cluster_DF)
+save(list = paste("hclust_clusters_", k1[k], sep = ""), 
+     file = paste("C:/plos-visualization-paper/results/hclust_clusters_", 
+                  k1[k],".Rdata",sep=""))
+
+# save as .csv file
+write.csv(full_cluster_DF, 
+          paste("C:/plos-visualization-paper/results/cluster_full_list_", 
+                k1, ".csv", sep = ""), row.names=F)
 
 # To view clusters
 #View(clusters)

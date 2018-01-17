@@ -1,7 +1,6 @@
 # Title: PCA Diel Plot using Summary Indices - Plos one paper
 # Author: Yvonne Phillips
 # Date:  14 July 2016
-# Modified: 15 September 2016
 
 # Note: The images produced are under copyright to the paper provided below 
 # and must not be reproduced without attribution.
@@ -10,50 +9,37 @@
 # Content of Long-duration Audio-recordings of the Environment through 
 # Clustering and Visualisation. Plos One. 
 
-# Description:  This code produces four PCA plots of acoustic data by 
-#   calculating the principal components and then mapping these 
-#   to the red, green and blue channels of the diel plot. Each plot has
-#   a size of 10.7 MB.
-#   
-#   The input data required is the data in Gympie_woondum_normalised_summary_indices.csv
-#   which contains the normalised and scale summary acoustic indices
-#   with NA where there are missing minutes. Civil-dawn, Sunrise, Sunset and Civil-dusk 
-#   are plotted onto the plots as black lines.
+# Description:  This code saves four PCA plots containing the mapping 
+# of the scaled first three principal components to the red, green and 
+# blue channel of the image. Plot size 4 x 10.7 MB.
 
-# IMPORTANT:  
-# 1. Set the start date below to the first day of recording
-#    in format (YYYY-MM-DD)
-# 2. Use lines 20 to 55 for Summary Indices and lines 57 to 99 for 
-#    spectral indices
+# File and folder requirements (3 files and 1 folder): 
+# C:/plos-visualization-paper/data/Gympie_20150622_20160723_Towsey_Indices.csv
+# C:/plos-visualization-paper/data/Woondum_20150622_20160723_Towsey_Indices.csv
+# C:/plos-visualization-paper/data/civil_dawn_2015_2016.RData
+# C:/plos-visualization-paper/plots
 
-# Use SHIFT, ALT, J to navigate to each of sections or
-# functions
-# 1.  PCA plots
+# Time requirements: about 1 minute
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-# 1. Plot PCA plot ------------------------------------------------------
+# PCA plot ------------------------------------------------------
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # remove all objects in the global environment
 rm(list = ls())
 
-#load(file="C:\\plos-visualization-paper\\results\\Gympie_woondum_normalised_summary_indices.RData")
-##############################################
-# Read Summary Indices
-##############################################
-gympie_file <- "C:/plos-visualization-paper/data/Gympie_20150622_20160723_Towsey_Indices.csv"
-woondum_file <-"C:/plos-visualization-paper/data/Woondum_20150622_20160723_Towsey_Indices.csv"
-gympie_indices <- read.csv(gympie_file, header = T)
-woondum_indices <- read.csv(woondum_file, header = T)
+# Read summary indices
+gympie_indices <- read.csv("C:/plos-visualization-paper/data/Gympie_20150622_20160723_Towsey_Indices.csv",
+                           header = T)
+woondum_indices <- read.csv("C:/plos-visualization-paper/data/Woondum_20150622_20160723_Towsey_Indices.csv",
+                            header = T)
 indices_all <- rbind(gympie_indices, woondum_indices)
 
-rm(gympie_file, woondum_file, gympie_indices, woondum_indices)
+rm(gympie_indices, woondum_indices)
 
 ##############################################
 # Normalise the selected summary indices
 #############################################
-# The code that follows shows how the normalised summary indices file
-# were saved
-# remove redundant indices
+# remove one of the pairs of highly correlated indices
 remove <- c(9,14)
 indices_all <- indices_all[,-remove]
 rm(remove)
@@ -90,9 +76,9 @@ for (j in 1:ncol(indices_norm)) {
 indices_all <- indices_norm
 
 # Set the first day of recording and the date 
-# where the plot will start
-actual_start_date <- "2015-06-22"
-start_date <- "2015-09-01" # where the plot will start
+# in the format (YYYY-MM-DD)
+actual_start_date <- "2015-06-22" # the first day of the recording 
+start_date <- "2015-09-01"        # the date where the plot will start
 actual_end_date <- "2016-07-23"
 end_date <- "2016-02-01"
 interval <- 1440
@@ -127,20 +113,14 @@ missing_minutes_summary <- which(is.na(indices_all[,1]))
 z <- setdiff(1:nrow(indices_all), missing_minutes_summary)
 
 # List of summary indices columns:
-#[1]  "BGN"  Background Noise
-#[2]  "SNR"  Signal to Noise ratio
-#[3]  "ACT"  Activity
-#[4]  "EVN"  Events per second
-#[5]  "HFC"  High Frequency Cover
-#[6]  "MFC"  Mid Frequency Cover
-#[7]  "EVN"  Low Frequency Cover
-#[8]  "ACI"  Acoustic Complexity Index
-#[-]  "ENT"  Temportal Entropy - removed
+#[1]  "BGN"  Background Noise;    [2]  "SNR"  Signal to Noise ratio
+#[3]  "ACT"  Activity;            [4]  "EVN"  Events per second
+#[5]  "HFC"  High Frequency Cover [6]  "MFC"  Mid Frequency Cover
+#[7]  "EVN"  Low Frequency Cover  [8]  "ACI"  Acoustic Complexity Index
 #[9]  "EAS"  Entropy of Average Spectrum
 #[10] "EPS"  Entropy of Peak Spectrum
 #[11] "ECV"  Entropy of Coefficient of Variance
 #[12] "CLC"  Cluster count
-#[-]  "SPD"  Spectral Peak Density - removed
 
 length(indices_all[,1])
 
@@ -209,25 +189,25 @@ days <- length(coef_min_max[,1])/(2*1440)
 
 load(file="C:/plos-visualization-paper/data/civil_dawn_2015_2016.RData")
 # convert minutes to 24 hour time
-civil_dawn_2015_2016$civil_dawn_times <- 
-  paste(substr(civil_dawn_2015_2016$CivSunrise,1,1), ":",
-        substr(civil_dawn_2015_2016$CivSunrise,2,3), sep="")
-civil_dawn_2015_2016$civil_dusk_times <- 
-  paste(substr(civil_dawn_2015_2016$CivSunset,1,2), ":",
-        substr(civil_dawn_2015_2016$CivSunset,3,4), sep="")
-civil_dawn_2015_2016$sunrise <- 
-  paste(substr(civil_dawn_2015_2016$Sunrise,1,1), ":",
-        substr(civil_dawn_2015_2016$Sunrise,2,3), sep="")
-civil_dawn_2015_2016$sunset <- 
-  paste(substr(civil_dawn_2015_2016$Sunset,1,2), ":",
-        substr(civil_dawn_2015_2016$Sunset,3,4), sep="")
+civil_dawn$civil_dawn_times <- 
+  paste(substr(civil_dawn$CivSunrise,1,1), ":",
+        substr(civil_dawn$CivSunrise,2,3), sep="")
+civil_dawn$civil_dusk_times <- 
+  paste(substr(civil_dawn$CivSunset,1,2), ":",
+        substr(civil_dawn$CivSunset,3,4), sep="")
+civil_dawn$sunrise <- 
+  paste(substr(civil_dawn$Sunrise,1,1), ":",
+        substr(civil_dawn$Sunrise,2,3), sep="")
+civil_dawn$sunset <- 
+  paste(substr(civil_dawn$Sunset,1,2), ":",
+        substr(civil_dawn$Sunset,3,4), sep="")
 
-a <- which(civil_dawn_2015_2016$dates==substr(start,1,10))
+a <- which(civil_dawn$dates==substr(start,1,10))
 reference <- a:(a+days-1)
-civil_dawn_times <- civil_dawn_2015_2016$civil_dawn_times[reference]
-civil_dusk_times <- civil_dawn_2015_2016$civil_dusk_times[reference]
-sunrise_times <- civil_dawn_2015_2016$sunrise[reference]
-sunset_times <- civil_dawn_2015_2016$sunset[reference]
+civil_dawn_times <- civil_dawn$civil_dawn_times[reference]
+civil_dusk_times <- civil_dawn$civil_dusk_times[reference]
+sunrise_times <- civil_dawn$sunrise[reference]
+sunset_times <- civil_dawn$sunset[reference]
 
 civ_dawn <- NULL
 for(i in 1:length(civil_dawn_times)) {
@@ -505,3 +485,4 @@ for (k in 1:2) {
   }
   dev.off()
 }
+paste(Sys.time(), "End", sep = " ")
