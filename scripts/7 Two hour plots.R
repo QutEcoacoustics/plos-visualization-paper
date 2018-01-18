@@ -6,18 +6,30 @@
 # Content of Long-duration Audio-recordings of the Environment through 
 # Clustering and Visualisation. Plos One. 
 
-# Description:  This code generates a number of plots using the cluster 
-# list obtained from 
+# Description:  This code contains a function (plot_funct) that
+# generates one or a series of two hour plots. A two hour plot displays
+# the average number of minutes each month in each two hour period
+# throughout the day.
+# A dataframe (cluster_list) is created numbering the minute of the day,  
+# site, date,period of the day and a unique combined reference to the site, 
+# year, month and period. This unique reference is used by the barplot 
+# function to produce plots for each month contained in the dataset. Note:  
+# the average for each month is calculated from the number of days recorded, 
+# this may be less than the number of days in the month, and the code 
+# accounts for the number of days available.
+
+# File and folder requirements
+# C:/plos-visualization-paper/data/cluster_list.RData
+# C:/plos-visualization-paper/plots
+
+# Time requirement: less than 1 minute
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-# Two hour plots for Supplementary Data  --------------------------------
+# Two hour plots  --------------------------------
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 rm(list = ls())
 
-# *** Set the cluster set variables
-k1_value <- 25000
-k2_value <- 60
-
+# load the cluster list for the k1 25000 and k2 60 cluster run
 load(file="C:/plos-visualization-paper/data/cluster_list.RData")
 minute_reference <- c(0:1439)
 minute_reference <- rep(minute_reference, (length(cluster_list)/1440))
@@ -104,6 +116,9 @@ cicadas_col <- "#E69F00"
 quiet_col <- "#999999"
 planes_col <- "#CC79A7"
 
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# plot_funct function ------------------------------
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 plot_funct <- function(clust_num, colour, site) {
   y <- which(a$Var1==clust_num)
   cluster_reference <- a[y,3]
@@ -193,7 +208,7 @@ plot_funct <- function(clust_num, colour, site) {
         # adjust the midpoints (mp)
         mp <- mp - spacing/2
         mp <- c(mp, mp[length(mp)]+ spacing)
-        at <- mp    #seq.int(0.4, 14, length.out = 12)
+        at <- mp
         Axis(side = 1, labels = FALSE,
              at = at, cex = 0.4, tck = -0.05, mgp = c(1,0.4,0))
         Axis(side = 1, labels = FALSE,
@@ -211,7 +226,7 @@ plot_funct <- function(clust_num, colour, site) {
         # adjust the midpoints (mp)
         mp <- mp - spacing/2
         mp <- c(mp, mp[length(mp)]+ spacing)
-        at <- mp    #seq.int(0.4, 14, length.out = 12)
+        at <- mp
         Axis(side = 2, labels=FALSE, tck = -0.05, mgp = c(1,0.4,0))
         Axis(side = 1, labels = FALSE, tck = -0.05,
              at = mp, mgp = c(1, 0.4, 0))
@@ -226,8 +241,9 @@ plot_funct <- function(clust_num, colour, site) {
     }
   }
 }
+
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-# Two hour plots for plos paper ------------------------------
+# Two hour plots for Plos One paper ------------------------------
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 tiff("C:/plos-visualization-paper/plots/Two-hour_plots.tiff",
      width = 2025, height = 1350, units = 'px', res = 300)
@@ -246,6 +262,7 @@ clust_num <- 37
 colour <- birds_col
 plot_funct(clust_num, colour, "site2")
 mtext(side = 3, line = 1, "b. BIRDS - Cluster 37                                                                                                                                 ", cex=1.1)
+
 mtext(side = 2, line = 1.3, outer = T, cex = 0.8,
       "Average number of cluster minutes in 2 hour period each month")
 
@@ -262,568 +279,4 @@ plot_funct(cluster, colour, "site2")
 mtext(side = 3, line = 1, "d. QUIET - Cluster 13                                                                                                                                 ", cex=1.1)
 
 dev.off()
-
-# Plots for Supplementary S3 
-# define cluster classes 
-rain <- c(2,10,17,18,21,54,59,60) 
-wind <- c(9,19,20,24,25,30,40,42,45,46,47,51,52,56)
-birds <- c(3,11,14,15,28,33,37,39,43,57,58)
-insects <- c(1,4,22,26,27,29)
-cicadas <- c(7,8,12,16,32,34,44,48)
-planes <- c(23,49)
-quiet <- c(5,6,13,31,35,36,38,41,50,53,55)
-list <- c("rain","wind","birds","insects","planes","quiet")
-
-mixtures <- c(2,4,7,8,22,26,30,39,45,54,60)
-inconsistent <- c(17,24,28,36,40,50,57)
-
-tiff("Figures for plos article/S4_rain_Gym.tiff", width = 2300, 
-     height = (370*length(rain)+20), units = 'px', res = 300)
-par(mfrow=c(length(rain), 14), mar=c(1, 0, 2, 0.1), 
-    oma=c(1.1, 2.1, 1, 0.2), xpd = NA,
-    cex = 1, cex.axis = 0.6, cex.main = 1)
-for(i in rain) {
-  clust_num <- i
-  colour <- rain_col
-  plot_funct(clust_num, colour, "site1")
-  if(i %in% mixtures) {
-    mtext(side = 3, line = 1, paste("Cluster",i," (MIX)","             ", sep = ""))  
-  }
-  if(i %in% inconsistent) {
-    mtext(side = 3, line = 1, paste("Cluster",i," (IC)","          ", sep = ""))  
-  }
-  if(!(i %in% mixtures) & !(i %in% inconsistent)) {
-    mtext(side = 3, line = 1, paste("Cluster",i,"          ", sep = ""))  
-  }
-}
-mtext(side = 3, "Gympie NP 22 June 2015 - 23 July 2016", outer = T)
-mtext(side = 2, line = 1.3, outer = T,
-      "       Average number of cluster minutes in 2 hour period each month")
-mtext(side = 1, outer = T,line = 0.15, cex = 1,
-      "(MIX) - Cluster with more than one dominant acoustic class; (IC) - Inconsistent cluster")
-dev.off()
-
-tiff("Figures for plos article/S4_rain_Woon.tiff", width = 2240, 
-     height = (370*length(rain)+20), units = 'px', res = 300)
-par(mfrow=c(length(rain), 14), 
-    mar=c(1, 0, 2, 0.1), oma=c(1.1, 1.5, 1, 0.2), xpd = NA,
-    cex = 1, cex.axis = 0.6, cex.main = 1)
-for(i in rain) {
-  clust_num <- i
-  colour <- rain_col
-  plot_funct(clust_num, colour, "site2")
-  if(i %in% mixtures) {
-    mtext(side = 3, line = 1, paste("Cluster",i," (MIX)","             ", sep = ""))  
-  }
-  if(i %in% inconsistent) {
-    mtext(side = 3, line = 1, paste("Cluster",i," (IC)","          ", sep = ""))  
-  }
-  if(!(i %in% mixtures) & !(i %in% inconsistent)) {
-    mtext(side = 3, line = 1, paste("Cluster",i,"          ", sep = ""))  
-  }
-}
-mtext(side = 3, "Woondum NP 22 June 2015 - 23 July 2016", outer = T)
-dev.off()
-#############
-# WIND
-tiff("Figures for plos article/S4_wind1_Gym.tiff", width = 2300, 
-     height = (370*length(wind[1:8])+20), units = 'px', res = 300)
-par(mfrow=c(length(wind[1:8]), 14), 
-    mar=c(1, 0, 2, 0.1), oma=c(1.1, 2.1, 0, 0), xpd = NA,
-    cex = 1, cex.axis = 0.6, cex.main = 1)
-for(i in wind[1:8]) {
-  clust_num <- i
-  colour <- wind_col
-  plot_funct(clust_num, colour, "site1")
-  if(i %in% mixtures) {
-    mtext(side = 3, line = 1, paste("Cluster",i," (MIX)","             ", sep = ""))  
-  }
-  if(i %in% inconsistent) {
-    mtext(side = 3, line = 1, paste("Cluster",i," (IC)","          ", sep = ""))  
-  }
-  if(!(i %in% mixtures) & !(i %in% inconsistent)) {
-    mtext(side = 3, line = 1, paste("Cluster",i,"          ", sep = ""))  
-  }
-}
-mtext(side = 3, "Gympie NP 22 June 2015 - 23 July 2016", outer = T)
-mtext(side = 2, line = 1.3, outer = T,
-      "       Average number of cluster minutes in 2 hour period each month")
-mtext(side = 1, outer = T,line = 0.15, cex = 1,
-      "(MIX) - Cluster with more than one dominant acoustic class; (IC) - Inconsistent cluster")
-dev.off()
-
-tiff("Figures for plos article/S4_wind1_Woon.tiff", width = 2250, 
-     height = (370*length(wind[1:8])+20), units = 'px', res = 300)
-par(mfrow=c(length(wind[1:8]), 14), 
-    mar=c(1, 0, 2, 0.1), oma=c(1.1, 1.5, 1, 0.2), xpd = NA,
-    cex = 1, cex.axis = 0.6, cex.main = 1)
-for(i in wind[1:8]) {
-  clust_num <- i
-  colour <- wind_col
-  plot_funct(clust_num, colour, "site2")
-  if(i %in% mixtures) {
-    mtext(side = 3, line = 1, paste("Cluster",i," (MIX)","             ", sep = ""))  
-  }
-  if(i %in% inconsistent) {
-    mtext(side = 3, line = 1, paste("Cluster",i," (IC)","          ", sep = ""))  
-  }
-  if(!(i %in% mixtures) & !(i %in% inconsistent)) {
-    mtext(side = 3, line = 1, paste("Cluster",i,"          ", sep = ""))  
-  }
-}
-mtext(side = 3, "Woondum NP 22 June 2015 - 23 July 2016", outer = T)
-mtext(side = 2, line = 1.3, outer = T,
-      "       Average number of cluster minutes in 2 hour period each month")
-dev.off()
-
-tiff("Figures for plos article/S4_wind2_Gym.tiff", width = 2300, 
-     height = (370*length(wind[9:length(wind)])+20), units = 'px', res = 300)
-par(mfrow=c(length(wind[9:length(wind)]), 14), 
-    mar=c(1, 0, 2, 0.1), oma=c(1.1, 2.1, 1, 0.2), xpd = NA,
-    cex = 1, cex.axis = 0.6, cex.main = 1)
-for(i in wind[9:length(wind)]) {
-  clust_num <- i
-  colour <- wind_col
-  plot_funct(clust_num, colour, "site1")
-  if(i %in% mixtures) {
-    mtext(side = 3, line = 1, paste("Cluster",i," (MIX)","             ", sep = ""))  
-  }
-  if(i %in% inconsistent) {
-    mtext(side = 3, line = 1, paste("Cluster",i," (IC)","          ", sep = ""))  
-  }
-  if(!(i %in% mixtures) & !(i %in% inconsistent)) {
-    mtext(side = 3, line = 1, paste("Cluster",i,"          ", sep = ""))  
-  }
-}
-mtext(side = 3, "Gympie NP 22 June 2015 - 23 July 2016", outer = T)
-mtext(side = 2, line = 1.3, outer = T,
-      "       Average number of cluster minutes in 2 hour period each month")
-mtext(side = 1, outer = T,line = 0.15, cex = 1,
-      "(MIX) - Cluster with more than one dominant acoustic class; (IC) - Inconsistent cluster")
-dev.off()
-
-tiff("Figures for plos article/S4_wind2_Woon.tiff", width = 2250, 
-     height = (370*length(wind[9:length(wind)])+20), units = 'px', res = 300)
-par(mfrow=c(length(wind[9:length(wind)]), 14), 
-    mar=c(1, 0, 2, 0.1), oma=c(1.1, 1.5, 1, 0.2), xpd = NA,
-    cex = 1, cex.axis = 0.6, cex.main = 1)
-for(i in wind[9:length(wind)]) {
-  clust_num <- i
-  colour <- wind_col
-  plot_funct(clust_num, colour, "site2")
-  if(i %in% mixtures) {
-    mtext(side = 3, line = 1, paste("Cluster",i," (MIX)","             ", sep = ""))  
-  }
-  if(i %in% inconsistent) {
-    mtext(side = 3, line = 1, paste("Cluster",i," (IC)","          ", sep = ""))  
-  }
-  if(!(i %in% mixtures) & !(i %in% inconsistent)) {
-    mtext(side = 3, line = 1, paste("Cluster",i,"          ", sep = ""))  
-  }
-}
-mtext(side = 3, "Gympie NP 22 June 2015 - 23 July 2016", outer = T)
-mtext(side = 2, line = 1.3, outer = T,
-      "       Average number of cluster minutes in 2 hour period each month")
-dev.off()
-#############
-# PLANES
-tiff("Figures for plos article/S4_planes_Gym.tiff", width = 2300, 
-     height = (370*length(planes)+20), units = 'px', res = 300)
-par(mfrow=c(length(planes), 14), 
-    mar=c(1, 0, 2, 0.1), oma=c(1.1, 2.6, 1, 0.2), xpd = NA,
-    cex = 1, cex.axis = 0.6, cex.main = 1)
-for(i in planes) {
-  clust_num <- i
-  colour <- planes_col
-  plot_funct(clust_num, colour, "site1")
-  if(i %in% mixtures) {
-    mtext(side = 3, line = 1, paste("Cluster",i," (MIX)","             ", sep = ""))  
-  }
-  if(i %in% inconsistent) {
-    mtext(side = 3, line = 1, paste("Cluster",i," (IC)","          ", sep = ""))  
-  }
-  if(!(i %in% mixtures) & !(i %in% inconsistent)) {
-    mtext(side = 3, line = 1, paste("Cluster",i,"          ", sep = ""))  
-  }
-}
-mtext(side = 3, "Gympie NP 22 June 2015 - 23 July 2016", outer = T)
-mtext(side = 2, line = 1.9, outer = T, cex = 0.85,
-      "   Average number of cluster minutes in")
-mtext(side = 2, line = 1.1, outer = T, cex = 0.85,
-      " 2 hour period each month")
-mtext(side = 1, outer = T,line = 0.15, cex = 1.0,
-      "(MIX) - Cluster with more than one dominant acoustic class; (IC) - Inconsistent cluster")
-dev.off()
-
-tiff("Figures for plos article/S4_planes_Woon.tiff", width = 2250, 
-     height = (370*length(planes)+20), units = 'px', res = 300)
-par(mfrow=c(length(planes), 14), 
-    mar=c(1, 0, 2, 0.1), oma=c(1.1, 1.5, 1, 0.2), xpd = NA,
-    cex = 1, cex.axis = 0.6, cex.main = 1)
-for(i in planes) {
-  clust_num <- i
-  colour <- planes_col
-  plot_funct(clust_num, colour, "site2")
-  if(i %in% mixtures) {
-    mtext(side = 3, line = 1, paste("Cluster",i," (MIX)","             ", sep = ""))  
-  }
-  if(i %in% inconsistent) {
-    mtext(side = 3, line = 1, paste("Cluster",i," (IC)","          ", sep = ""))  
-  }
-  if(!(i %in% mixtures) & !(i %in% inconsistent)) {
-    mtext(side = 3, line = 1, paste("Cluster",i,"          ", sep = ""))  
-  }
-}
-mtext(side = 3, "Woondum NP 22 June 2015 - 23 July 2016", outer = T)
-dev.off()
-#############
-tiff("Figures for plos article/S4_wind2_Gym.tiff", width = 2300, 
-     height = (370*length(wind[9:length(wind)])+20), units = 'px', res = 300)
-par(mfrow=c(length(wind[9:length(wind)]), 14), 
-    mar=c(1, 0, 2, 0.1), oma=c(1.1, 2.1, 1, 0.2), xpd = NA,
-    cex = 1, cex.axis = 0.6, cex.main = 1)
-for(i in wind[9:length(wind)]) {
-  clust_num <- i
-  colour <- wind_col
-  plot_funct(clust_num, colour, "site1")
-  if(i %in% mixtures) {
-    mtext(side = 3, line = 1, paste("Cluster",i," (MIX)","             ", sep = ""))  
-  }
-  if(i %in% inconsistent) {
-    mtext(side = 3, line = 1, paste("Cluster",i," (IC)","          ", sep = ""))  
-  }
-  if(!(i %in% mixtures) & !(i %in% inconsistent)) {
-    mtext(side = 3, line = 1, paste("Cluster",i,"          ", sep = ""))  
-  }
-}
-mtext(side = 3, "Gympie NP 22 June 2015 - 23 July 2016", outer = T)
-mtext(side = 2, line = 1.3, outer = T,
-      "       Average number of cluster minutes in 2 hour period each month")
-mtext(side = 1, outer = T,line = 0.15, cex = 1,
-      "(MIX) - Cluster with more than one dominant acoustic class; (IC) - Inconsistent cluster")
-dev.off()
-
-tiff("Figures for plos article/S4_wind2_Woon.tiff", width = 2250, 
-     height = (370*length(wind[9:length(wind)])+20), units = 'px', res = 300)
-par(mfrow=c(length(wind[9:length(wind)]), 14), 
-    mar=c(1, 0, 2, 0.1), oma=c(1.1, 1.5, 1, 0.2), xpd = NA,
-    cex = 1, cex.axis = 0.6, cex.main = 1)
-for(i in wind[9:length(wind)]) {
-  clust_num <- i
-  colour <- wind_col
-  plot_funct(clust_num, colour, "site2")
-  if(i %in% mixtures) {
-    mtext(side = 3, line = 1, paste("Cluster",i," (MIX)","             ", sep = ""))  
-  }
-  if(i %in% inconsistent) {
-    mtext(side = 3, line = 1, paste("Cluster",i," (IC)","          ", sep = ""))  
-  }
-  if(!(i %in% mixtures) & !(i %in% inconsistent)) {
-    mtext(side = 3, line = 1, paste("Cluster",i,"          ", sep = ""))  
-  }
-}
-mtext(side = 3, "Woondum NP 22 June 2015 - 23 July 2016", outer = T)
-mtext(side = 2, line = 1.3, outer = T,
-      "       Average number of cluster minutes in 2 hour period each month")
-dev.off()
-#########
-tiff("Figures for plos article/S4_birds1_Gym.tiff", width = 2300, 
-     height = (370*length(birds[1:8])+20), units = 'px', res = 300)
-par(mfrow=c(length(birds[1:8]), 14), 
-    mar=c(1, 0, 2, 0.1), oma=c(1.1, 2.1, 1, 0.2), xpd = NA,
-    cex = 1, cex.axis = 0.6, cex.main = 1)
-for(i in birds[1:8]) {
-  clust_num <- i
-  colour <- birds_col
-  plot_funct(clust_num, colour, "site1")
-  if(i %in% mixtures) {
-    mtext(side = 3, line = 1, paste("Cluster",i," (MIX)","             ", sep = ""))  
-  }
-  if(i %in% inconsistent) {
-    mtext(side = 3, line = 1, paste("Cluster",i," (IC)","          ", sep = ""))  
-  }
-  if(!(i %in% mixtures) & !(i %in% inconsistent)) {
-    mtext(side = 3, line = 1, paste("Cluster",i,"          ", sep = ""))  
-  }
-}
-mtext(side = 3, "Gympie NP 22 June 2015 - 23 July 2016", outer = T)
-mtext(side = 2, line = 1.3, outer = T,
-      "       Average number of cluster minutes in 2 hour period each month")
-mtext(side = 1, outer = T,line = 0.15, cex = 1,
-      "(MIX) - Cluster with more than one dominant acoustic class; (IC) - Inconsistent cluster")
-dev.off()
-
-tiff("Figures for plos article/S4_birds1_Woon.tiff", width = 2240, 
-     height = (370*length(birds[1:8])+20), units = 'px', res = 300)
-par(mfrow=c(length(birds[1:8]), 14), 
-    mar=c(1, 0, 2, 0.1), oma=c(1.1, 1.5, 1, 0.2), xpd = NA,
-    cex = 1, cex.axis = 0.6, cex.main = 1)
-for(i in birds[1:8]) {
-  clust_num <- i
-  colour <- birds_col
-  plot_funct(clust_num, colour, "site2")
-  if(i %in% mixtures) {
-    mtext(side = 3, line = 1, paste("Cluster",i," (MIX)","             ", sep = ""))  
-  }
-  if(i %in% inconsistent) {
-    mtext(side = 3, line = 1, paste("Cluster",i," (IC)","          ", sep = ""))  
-  }
-  if(!(i %in% mixtures) & !(i %in% inconsistent)) {
-    mtext(side = 3, line = 1, paste("Cluster",i,"          ", sep = ""))  
-  }
-}
-mtext(side = 3, "Woondum NP 22 June 2015 - 23 July 2016", outer = T)
-dev.off()
-
-tiff("Figures for plos article/S4_birds2_Gym.tiff", width = 2300, 
-     height = (370*length(birds[9:length(birds)])+20), 
-     units = 'px', res = 300)
-par(mfrow=c(length(birds[9:length(birds)]), 14), 
-    mar=c(1, 0, 2, 0.1), oma=c(1.1, 2.6, 1, 0.2), xpd = NA,
-    cex = 1, cex.axis = 0.6, cex.main = 1)
-for(i in birds[9:length(birds)]) {
-  clust_num <- i
-  colour <- birds_col
-  plot_funct(clust_num, colour, "site1")
-  if(i %in% mixtures) {
-    mtext(side = 3, line = 1, paste("Cluster",i," (MIX)","             ", sep = ""))  
-  }
-  if(i %in% inconsistent) {
-    mtext(side = 3, line = 1, paste("Cluster",i," (IC)","          ", sep = ""))  
-  }
-  if(!(i %in% mixtures) & !(i %in% inconsistent)) {
-    mtext(side = 3, line = 1, paste("Cluster",i,"          ", sep = ""))  
-  }
-}
-mtext(side = 3, "Gympie NP 22 June 2015 - 23 July 2016", outer = T)
-mtext(side = 2, line = 1.9, outer = T, cex = 0.85,
-      "   Average number of cluster minutes in")
-mtext(side = 2, line = 1.1, outer = T, cex = 0.85,
-      " 2 hour period each month")
-#mtext(side = 2, line = 1.3, outer = T,
-#      "       Average number of cluster minutes in 2 hour period each month")
-mtext(side = 1, outer = T,line = 0.15, cex = 1,
-      "(MIX) - Cluster with more than one dominant acoustic class; (IC) - Inconsistent cluster")
-dev.off()
-
-tiff("Figures for plos article/S4_birds2_Woon.tiff", width = 2240, 
-     height = (370*length(birds[9:length(birds)])+20), units = 'px', res = 300)
-par(mfrow=c(length(birds[9:length(birds)]), 14), 
-    mar=c(1, 0, 2, 0.1), oma=c(1.1, 1.5, 1, 0.2), xpd = NA,
-    cex = 1, cex.axis = 0.6, cex.main = 1)
-for(i in birds[9:length(birds)]) {
-  clust_num <- i
-  colour <- birds_col
-  plot_funct(clust_num, colour, "site2")
-  if(i %in% mixtures) {
-    mtext(side = 3, line = 1, paste("Cluster",i," (MIX)","             ", sep = ""))  
-  }
-  if(i %in% inconsistent) {
-    mtext(side = 3, line = 1, paste("Cluster",i," (IC)","          ", sep = ""))  
-  }
-  if(!(i %in% mixtures) & !(i %in% inconsistent)) {
-    mtext(side = 3, line = 1, paste("Cluster",i,"          ", sep = ""))  
-  }
-}
-mtext(side = 3, "Woondum NP 22 June 2015 - 23 July 2016", outer = T)
-dev.off()
-##########
-# CICADAS
-tiff("Figures for plos article/S4_cicadas_Gym.tiff", width = 2300, 
-     height = (370*length(cicadas)+20), units = 'px', res = 300)
-par(mfrow=c(length(cicadas), 14), mar=c(1, 0, 2, 0.1), 
-    oma=c(1.1, 2.1, 1, 0.2), xpd = NA,
-    cex = 1, cex.axis = 0.6, cex.main = 1)
-for(i in cicadas) {
-  clust_num <- i
-  colour <- cicadas_col
-  plot_funct(clust_num, colour, "site1")
-  if(i %in% mixtures) {
-    mtext(side = 3, line = 1, paste("Cluster",i," (MIX)","             ", sep = ""))  
-  }
-  if(i %in% inconsistent) {
-    mtext(side = 3, line = 1, paste("Cluster",i," (IC)","          ", sep = ""))  
-  }
-  if(!(i %in% mixtures) & !(i %in% inconsistent)) {
-    mtext(side = 3, line = 1, paste("Cluster",i,"          ", sep = ""))  
-  }
-}
-mtext(side = 3, "Gympie NP 22 June 2015 - 23 July 2016", outer = T)
-mtext(side = 2, line = 1.3, outer = T,
-      "       Average number of cluster minutes in 2 hour period each month")
-mtext(side = 1, outer = T,line = 0.15, cex = 1,
-      "(MIX) - Cluster with more than one dominant acoustic class; (IC) - Inconsistent cluster")
-dev.off()
-
-tiff("Figures for plos article/S4_cicadas_Woon.tiff", width = 2240, 
-     height = (370*length(cicadas)+20), units = 'px', res = 300)
-par(mfrow=c(length(cicadas), 14), 
-    mar=c(1, 0, 2, 0.1), oma=c(1.1, 1.5, 1, 0.2), xpd = NA,
-    cex = 1, cex.axis = 0.6, cex.main = 1)
-for(i in cicadas) {
-  clust_num <- i
-  colour <- cicadas_col
-  plot_funct(clust_num, colour, "site2")
-  if(i %in% mixtures) {
-    mtext(side = 3, line = 1, paste("Cluster",i," (MIX)","             ", sep = ""))  
-  }
-  if(i %in% inconsistent) {
-    mtext(side = 3, line = 1, paste("Cluster",i," (IC)","          ", sep = ""))  
-  }
-  if(!(i %in% mixtures) & !(i %in% inconsistent)) {
-    mtext(side = 3, line = 1, paste("Cluster",i,"          ", sep = ""))  
-  }
-}
-mtext(side = 3, "Woondum NP 22 June 2015 - 23 July 2016", outer = T)
-dev.off()
-##########
-# QUIET
-tiff("Figures for plos article/S4_quiet1_Gym.tiff", width = 2300, 
-     height = (370*length(quiet[1:8])+20), units = 'px', res = 300)
-par(mfrow=c(length(quiet[1:8]), 14), mar=c(1, 0, 2, 0.1), 
-    oma=c(1.1, 2.1, 1, 0.2), xpd = NA,
-    cex = 1, cex.axis = 0.6, cex.main = 1)
-for(i in quiet[1:8]) {
-  clust_num <- i
-  colour <- quiet_col
-  plot_funct(clust_num, colour, "site1")
-  if(i %in% mixtures) {
-    mtext(side = 3, line = 1, paste("Cluster",i," (MIX)","             ", sep = ""))  
-  }
-  if(i %in% inconsistent) {
-    mtext(side = 3, line = 1, paste("Cluster",i," (IC)","          ", sep = ""))  
-  }
-  if(!(i %in% mixtures) & !(i %in% inconsistent)) {
-    mtext(side = 3, line = 1, paste("Cluster",i,"          ", sep = ""))  
-  }
-}
-mtext(side = 3, "Gympie NP 22 June 2015 - 23 July 2016", outer = T)
-mtext(side = 2, line = 1.3, outer = T,
-      "       Average number of cluster minutes in 2 hour period each month")
-mtext(side = 1, outer = T,line = 0.15, cex = 1,
-      "(MIX) - Cluster with more than one dominant acoustic class; (IC) - Inconsistent cluster")
-dev.off()
-
-tiff("Figures for plos article/S4_quiet1_Woon.tiff", width = 2240, 
-     height = (370*length(quiet[1:8])+20), units = 'px', res = 300)
-par(mfrow=c(length(quiet[1:8]), 14), 
-    mar=c(1, 0, 2, 0.1), oma=c(1.1, 1.5, 1, 0.2), xpd = NA,
-    cex = 1, cex.axis = 0.6, cex.main = 1)
-for(i in quiet[1:8]) {
-  clust_num <- i
-  colour <- quiet_col
-  plot_funct(clust_num, colour, "site2")
-  if(i %in% mixtures) {
-    mtext(side = 3, line = 1, paste("Cluster",i," (MIX)","             ", sep = ""))  
-  }
-  if(i %in% inconsistent) {
-    mtext(side = 3, line = 1, paste("Cluster",i," (IC)","          ", sep = ""))  
-  }
-  if(!(i %in% mixtures) & !(i %in% inconsistent)) {
-    mtext(side = 3, line = 1, paste("Cluster",i,"          ", sep = ""))  
-  }
-}
-mtext(side = 3, "Woondum NP 22 June 2015 - 23 July 2016", outer = T)
-dev.off()
-
-tiff("Figures for plos article/S4_quiet2_Gym.tiff", width = 2300, 
-     height = (370*length(quiet[9:length(quiet)])+20), units = 'px', res = 300)
-par(mfrow=c(length(quiet[9:length(quiet)]), 14), mar=c(1, 0, 2, 0.1), 
-    oma=c(1.1, 2.6, 1, 0.2), xpd = NA,
-    cex = 1, cex.axis = 0.6, cex.main = 1)
-for(i in quiet[9:length(quiet)]) {
-  clust_num <- i
-  colour <- quiet_col
-  plot_funct(clust_num, colour, "site1")
-  if(i %in% mixtures) {
-    mtext(side = 3, line = 1, paste("Cluster",i," (MIX)","             ", sep = ""))  
-  }
-  if(i %in% inconsistent) {
-    mtext(side = 3, line = 1, paste("Cluster",i," (IC)","          ", sep = ""))  
-  }
-  if(!(i %in% mixtures) & !(i %in% inconsistent)) {
-    mtext(side = 3, line = 1, paste("Cluster",i,"          ", sep = ""))  
-  }
-}
-mtext(side = 3, "Gympie NP 22 June 2015 - 23 July 2016", outer = T)
-mtext(side = 2, line = 1.9, outer = T, cex = 0.85,
-      "   Average number of cluster minutes")
-mtext(side = 2, line = 1.1, outer = T, cex = 0.85,
-      " 2 hour period each month")
-mtext(side = 1, outer = T,line = 0.15, cex = 1,
-      "(MIX) - Cluster with more than one dominant acoustic class; (IC) - Inconsistent cluster")
-dev.off()
-
-tiff("Figures for plos article/S4_quiet2_Woon.tiff", width = 2240, 
-     height = (370*length(quiet[9:length(quiet)])+20), units = 'px', res = 300)
-par(mfrow=c(length(quiet[9:length(quiet)]), 14), 
-    mar=c(1, 0, 2, 0.1), oma=c(1.1, 1.5, 1, 0.2), xpd = NA,
-    cex = 1, cex.axis = 0.6, cex.main = 1)
-for(i in quiet[9:length(quiet)]) {
-  clust_num <- i
-  colour <- quiet_col
-  plot_funct(clust_num, colour, "site2")
-  if(i %in% mixtures) {
-    mtext(side = 3, line = 1, paste("Cluster",i," (MIX)","             ", sep = ""))  
-  }
-  if(i %in% inconsistent) {
-    mtext(side = 3, line = 1, paste("Cluster",i," (IC)","          ", sep = ""))  
-  }
-  if(!(i %in% mixtures) & !(i %in% inconsistent)) {
-    mtext(side = 3, line = 1, paste("Cluster",i,"          ", sep = ""))  
-  }
-}
-mtext(side = 3, "Woondum NP 22 June 2015 - 23 July 2016", outer = T)
-dev.off()
-##########
-# INSECTS
-tiff("Figures for plos article/S4_insects_Gym.tiff", width = 2300, 
-     height = (370*length(insects)+20), units = 'px', res = 300)
-par(mfrow=c(length(insects), 14), mar=c(1, 0, 2, 0.1), 
-    oma=c(1.1, 2.1, 1, 0.2), xpd = NA,
-    cex = 1, cex.axis = 0.6, cex.main = 1)
-for(i in insects) {
-  clust_num <- i
-  colour <- insects_col
-  plot_funct(clust_num, colour, "site1")
-  if(i %in% mixtures) {
-    mtext(side = 3, line = 1, paste("Cluster",i," (MIX)","             ", sep = ""))  
-  }
-  if(i %in% inconsistent) {
-    mtext(side = 3, line = 1, paste("Cluster",i," (IC)","          ", sep = ""))  
-  }
-  if(!(i %in% mixtures) & !(i %in% inconsistent)) {
-    mtext(side = 3, line = 1, paste("Cluster",i,"          ", sep = ""))  
-  }
-}
-mtext(side = 3, "Gympie NP 22 June 2015 - 23 July 2016", outer = T)
-mtext(side = 2, line = 1.3, outer = T,
-      "       Average number of cluster minutes in 2 hour period each month")
-mtext(side = 1, outer = T,line = 0.15, cex = 1,
-      "(MIX) - Cluster with more than one dominant acoustic class; (IC) - Inconsistent cluster")
-dev.off()
-
-tiff("Figures for plos article/S4_insects_Woon.tiff", width = 2250, 
-     height = (370*length(insects)+20), units = 'px', res = 300)
-par(mfrow=c(length(insects), 14), mar=c(1, 0, 2, 0.1), 
-    oma=c(1.1, 1.5, 1, 0.2), xpd = NA,
-    cex = 1, cex.axis = 0.6, cex.main = 1)
-for(i in insects) {
-  clust_num <- i
-  colour <- insects_col
-  plot_funct(clust_num, colour, "site2")
-  if(i %in% mixtures) {
-    mtext(side = 3, line = 1, paste("Cluster",i," (MIX)","             ", sep = ""))  
-  }
-  if(i %in% inconsistent) {
-    mtext(side = 3, line = 1, paste("Cluster",i," (IC)","          ", sep = ""))  
-  }
-  if(!(i %in% mixtures) & !(i %in% inconsistent)) {
-    mtext(side = 3, line = 1, paste("Cluster",i,"          ", sep = ""))  
-  }
-}
-mtext(side = 3, "Woondum NP 22 June 2015 - 23 July 2016", outer = T)
-mtext(side = 2, line = 1.3, outer = T,
-      "       Average number of cluster minutes in 2 hour period each month")
-dev.off()
-##########
+# End of code --------------------------------
