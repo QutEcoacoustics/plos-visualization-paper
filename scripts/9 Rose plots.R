@@ -12,12 +12,16 @@
 # Christophe Ladroue. Retrieved from 
 # chrisladroue.com/wp-content/uploads/2012/02/polarHistogram.R.zip
 
-# File (only the cluster list) and folder requirements
+# File (the cluster list & sunset times) and folder requirements
 # C:/plos-visualization-paper/data/cluster_list.RData
+# C:/plos-visualization-paper/data/civil_dawn_2015_2016.RData
 # C:/plos-visualization-paper/results
 # C:/plos-visualization-paper/plots
 
 # Time requirements: about 65 minutes
+
+# Package requirements
+# plyr, ggplot2 - required for polarHistogram function
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # remove all objects in the global environment
@@ -197,18 +201,6 @@ write.csv(df, "C:/plos-visualization-paper/results/polar_data.csv", row.names = 
 # remove all objects in the global environment
 rm(list = ls())
 
-# sunrise dataset for the 15th of each month
-load("C:/plos-visualization-paper/data/civil_dawn_2015_2016.RData")
-a <- which(substr(civil_dawn$dates,9,10)==15)
-paste(civil_dawn$dates[a])
-civil_dawn <- civil_dawn[a[6:19],1:3]
-civil_dawn$Sunrise <- (as.numeric(substr(as.numeric(civil_dawn$Sunrise),1,1))*60) +
-  as.numeric(substr(as.numeric(civil_dawn$Sunrise),2,3))
-civil_dawn$Sunset <- (as.numeric(substr(as.numeric(civil_dawn$Sunset),1,2))*60) +
-  as.numeric(substr(as.numeric(civil_dawn$Sunset),3,4))
-sunrise_min <- rep(civil_dawn$Sunrise,2)
-sunset_min <- rep(civil_dawn$Sunset,2)
-
 # if the above code has been run then read the file
 f <- paste0("C:/plos-visualization-paper/results/polar_data.csv")
 if (file.exists(f)) {
@@ -220,6 +212,18 @@ df$item <- as.character(df$item)
 df$family <- as.character(df$family)
 df$score <- as.character(df$score)
 df$value <- as.numeric(df$value)
+
+# sunrise dataset for the 15th of each month
+load("C:/plos-visualization-paper/data/civil_dawn_2015_2016.RData")
+a <- which(substr(civil_dawn$dates,9,10)==15)
+paste(civil_dawn$dates[a])
+civil_dawn <- civil_dawn[a[6:19],1:3]
+civil_dawn$Sunrise <- (as.numeric(substr(as.numeric(civil_dawn$Sunrise),1,1))*60) +
+  as.numeric(substr(as.numeric(civil_dawn$Sunrise),2,3))
+civil_dawn$Sunset <- (as.numeric(substr(as.numeric(civil_dawn$Sunset),1,2))*60) +
+  as.numeric(substr(as.numeric(civil_dawn$Sunset),3,4))
+sunrise_min <- rep(civil_dawn$Sunrise,2)
+sunset_min <- rep(civil_dawn$Sunset,2)
 
 # list the clusters. # NOTE: if other clusters are required
 # code stating colours, scale and months for this cluster

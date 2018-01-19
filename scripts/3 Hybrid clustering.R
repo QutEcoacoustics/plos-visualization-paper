@@ -22,6 +22,9 @@
 
 # Time requirements: about 8-10 hours for each k1 cluster run
 
+# Package requirements
+# class
+
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # Load the SUMMARY indices ---------------------
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -117,7 +120,6 @@ for (j in k2) {
   test <- indices_norm_summary
   # set up class labels
   cl <- factor(unname(hybrid.clusters))
-  library(class)
   # set the k value for the knn function 
   k3 <- sqrt(floor(nrow(train)))
   # if k3 is even reduce by one to make odd
@@ -127,8 +129,12 @@ for (j in k2) {
   }
   
   # Step 3:  Use knn to assign minutes to clusters ------
-  # The knn assignment takes a long time 
   
+  # The class package is required for the knn function
+  #Venables, W. N. & Ripley, B. D. (2002) Modern Applied
+  #Statistics with S. Fourth Edition. Springer, New York. ISBN
+  #0-387-95457-0
+  library(class)
   clusts <- knn(train[,-1], test, cl, k = k3, prob = F)
   clusters <- cbind(clusters, clusts)
 }

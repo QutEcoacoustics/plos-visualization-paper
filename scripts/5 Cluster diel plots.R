@@ -17,6 +17,9 @@
 
 # Time requirements: about 3 mintues
 
+# Package requirements
+# nil
+
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # Cluster Diel Plot code ------------
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -23,6 +23,9 @@
 
 # Time requirements: about 1 mintue
 
+# Package requirements
+# nil
+
 #########################################################
 # Get the cluster list corresponding to the twelve days
 #########################################################

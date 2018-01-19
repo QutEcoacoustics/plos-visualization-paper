@@ -17,6 +17,9 @@
 
 # Time requirements: less than one minute
 
+# Package requirements
+# cluster, fmsb
+
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # Function and data sourcing for Radar Plots ---------------------------------
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -80,8 +83,6 @@ colnames(medoids) <- c("clust", "BGN","SNR","ACT",
                     "CLC")
 
 # The 'fmsb' package is required for the radarplot function
-# Nakazawa M. ‘fmsb' (R package) Version 0.5.2 2015. 
-# Available from: https://cran.r-project.org/web/packages/fmsb/fmsb.pdf.
 library(fmsb) #Functions for Medical Statistics Book with some Demographic Data
 
 # Six clusters are selected for ribbon plot
@@ -161,8 +162,6 @@ dev.off()
 # initialise a dataframe for a 100 minute sample of each cluster
 temp_indices_norm_summary <- data.frame(matrix(0, nrow = 100, ncol = 12))
 
-# the package "graphics" is required for the function xxxxxxxxxx
-#library(graphics)
 ref<- 1
 clust <- 34
 if(clust %in% c(34,44, 48)) {
