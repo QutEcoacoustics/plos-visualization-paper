@@ -77,13 +77,16 @@ for (k in 1:1) {
   for(i in 1:length(list)){
     list[i] <- paste(list[i],k1[k],sep = "")
   }
+  print(Sys.time())
   for (i in 1:length(list)) {
     assign(paste(list[i],sep = ""), kmeansObj[i])
     save(list = list[i], file = paste("C:/plos-visualization-paper/results/kmeans", list[i],".Rdata",sep=""))
   }
+  print(Sys.time())
   for (i in 1:length(list)) {
     rm(list = list[i]) 
   }
+  print(Sys.time())
 }
 paste(Sys.time(), " End kmeans clustering", sep = " ")
 
@@ -127,7 +130,7 @@ for (j in k2) {
   if(is.even(k3)=="TRUE") {
     k3 <- k3 - 1
   }
-  
+  print(Sys.time())
   # Step 3:  Use knn to assign minutes to clusters ------
   
   # The class package is required for the knn function
@@ -137,6 +140,7 @@ for (j in k2) {
   library(class)
   clusts <- knn(train[,-1], test, cl, k = k3, prob = F)
   clusters <- cbind(clusters, clusts)
+  print(Sys.time())
 }
 paste(Sys.time(), "Ending the cutree function")
 

@@ -7,7 +7,7 @@
 # Clustering and Visualisation. Plos One. 
 
 # Description:  This code generates a number of rose plots using an 
-# adaption of code written by Christophe Ladroue 
+# adaption of the polarHistogram function written by Christophe Ladroue 
 # Ladroue, C. (2012). Polar histogram  pretty and useful _ 
 # Christophe Ladroue. Retrieved from 
 # chrisladroue.com/wp-content/uploads/2012/02/polarHistogram.R.zip
@@ -50,7 +50,6 @@ for(i in 1:(length(day.ref)-1)) {
   rownames(counts) <- 1:nrow(counts)
   print(i) # of 38209
 }
-write.csv(counts,"C:/plos-visualization-paper/results/counts_30minute.csv", row.names = FALSE)
 paste(Sys.time(), "Ending counts")
 
 site <- c("GympieNP", "WoondumNP")
@@ -267,8 +266,14 @@ for(t in 1:length(list1)) {
     }
   }
   
-  # Christophe Ladroue
+  # The plyr package is required to run the polarHistogram code
+  # Wickham, H. (2011). The Split-Apply-Combine Strategy for Data 
+  # Analysis. Journal of Statistical Software, 40(1), 1-29.
+  # Retrieved from http://www.jstatsoft.org/v40/i01/
   library(plyr)
+  # The ggplot2 package is required to run the polarHistogram code
+  # Wickham, H. (2009). ggplot2: Elegant Graphics for Data Analysis.
+  # New York: Springer-Verlag.
   library(ggplot2)
   
   polarHistogram <-function (df, family = NULL, 

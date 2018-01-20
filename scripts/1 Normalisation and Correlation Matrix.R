@@ -10,7 +10,7 @@
 # C:/plos-visualization-paper/data/Woondum_20150622_20160723_Towsey_Indices.csv
 # C:/plos-visualization-paper/results
 
-# Time requirements: about xxxx mintues
+# Time requirements: less than 1 mintue
 
 ##############################################
 # Read Summary Indices
