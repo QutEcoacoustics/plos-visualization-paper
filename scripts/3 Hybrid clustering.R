@@ -47,7 +47,7 @@ colnames(indices_norm_summary) <- colnames
 # a is the missing minutes and z is the recorded minutes
 a <- which(is.na(indices_norm_summary$BGN))
 length(a) # length 5093 (773 + 4320 (3 days) minutes)
-# save a vector of the recorded minutes
+# save a list of integers of the recorded minutes
 z <- setdiff(1:nrow(indices_norm_summary), a)
 
 # remove the missing minutes and the three days in October 2015

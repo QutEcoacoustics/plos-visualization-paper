@@ -14,7 +14,7 @@
 # C:/plos-visualization-paper/data/cluster_list.RData
 # C:/plos-visualization-paper/plots
 
-# Time requirements: about 6.5 mintues
+# Time requirements: about 6 mintues
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # Polar Histogram 365 days-------------------------
@@ -22,20 +22,7 @@
 # remove all objects in the global environment
 rm(list = ls())
 
-k1_value <- 25000
-k2_value <- 60
-column <- k2_value/5
-
-file_name <- paste("C:/plos-visualization-paper/results/hclust_clusters_",
-                   k1_value, ".RData", sep = "")
-file_name_short <- paste("hclust_clusters_",k1_value, sep = "")
-# remove unneeded values
-load(file_name)
-# load the cluster list 
-cluster_list <- get(file_name_short, envir=globalenv())[,column]
-
-# remove unneeded objects from global environment
-rm(hclust_clusters_25000, file_name, file_name_short, column)
+load("C:/plos-visualization-paper/data/cluster_list.RData")
 
 # determine missing minute summary 
 missing_minutes_summary <- which(is.na(cluster_list)) 
