@@ -4,6 +4,8 @@
 
 # Note: The images produced are under copyright to the paper provided below 
 # and must not be reproduced without attribution.
+# These images are based on the summary acoustic indices calculated
+# on one channel.
 
 # Phillips, Y. F., Towsey, M., & Roe, P. (2018). Revealing the Ecological 
 # Content of Long-duration Audio-recordings of the Environment through 
@@ -14,26 +16,50 @@
 # blue channel of the image. Plot size 4 x 10.7 MB.
 
 # File and folder requirements (3 files and 1 folder): 
-# C:/plos-visualization-paper/data/Gympie_20150622_20160723_Towsey_Indices.csv
-# C:/plos-visualization-paper/data/Woondum_20150622_20160723_Towsey_Indices.csv
-# C:/plos-visualization-paper/data/civil_dawn_2015_2016.RData
+# These are all automatically loaded below
+# C:/plos-visualization-paper/data/gympie2015062220160723towseyindices.csv
+# C:/plos-visualization-paper/data/woondum2015062220160723towseyindices.csv
+# C:/plos-visualization-paper/data/geoscienceaustraliasunrisetimesgympie20152016
 # C:/plos-visualization-paper/plots
 
-# Time requirements: about 1 minute
+# Time requirements: about 3 minutes
 
+# Packages: NILL
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # PCA plot ------------------------------------------------------
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # remove all objects in the global environment
 rm(list = ls())
+start_time <- paste(Sys.time())
 
-# Read summary indices
-gympie_indices <- read.csv("C:/plos-visualization-paper/data/Gympie_20150622_20160723_Towsey_Indices.csv",
-                           header = T)
-woondum_indices <- read.csv("C:/plos-visualization-paper/data/Woondum_20150622_20160723_Towsey_Indices.csv",
-                            header = T)
+# make folder for plots if it does not exist
+f <- paste0("C:/plos-visualization-paper/plots/")
+if (!dir.exists(f)) {
+  dir.create("C:/plos-visualization-paper/plots/")
+}
+
+# Load and read summary indices (if necessary)
+u <- "https://data.researchdatafinder.qut.edu.au/dataset/0f706895-37df-4a15-a7a6-3c9e5e2a3dd0/resource/c5b88663-5ed5-47b6-bddd-1069ec6b21d0/download/gympie2015062220160723towseyindices.csv"
+name <- basename(u)
+f <- paste0("C:/plos-visualization-paper/data/",name,sep="")
+if (!file.exists(f)) {
+  download.file(u, file.path("C:/plos-visualization-paper/data/", basename(u)))
+  rm(f, u)
+}
+gympie_indices <- read.csv(paste0("C:/plos-visualization-paper/data/",name,sep=""))
+
+u <- "https://data.researchdatafinder.qut.edu.au/dataset/0f706895-37df-4a15-a7a6-3c9e5e2a3dd0/resource/0869bf65-0951-4636-ae4a-fec37528a32d/download/woondum2015062220160723towseyindices.csv"
+name <- basename(u)
+f <- paste0("C:/plos-visualization-paper/data/",name,sep="")
+if (!file.exists(f)) {
+  download.file(u, file.path("C:/plos-visualization-paper/data/", basename(u)))
+  rm(f, u)
+}
+if (file.exists(f)) {
+  rm(f, u)
+}
+woondum_indices <- read.csv(paste0("C:/plos-visualization-paper/data/",name,sep=""))
 indices_all <- rbind(gympie_indices, woondum_indices)
-
 rm(gympie_indices, woondum_indices)
 
 ##############################################
@@ -100,7 +126,6 @@ dates <- seq(from=start, by=interval*60, to=end)
 
 # IMPORTANT:  These are used to name the plots
 site <- c("Gympie NP", "Woondum NP")
-index <- "SELECTED_Final" # or "ALL"
 type <- "Summary"
 
 # Print out a list of all summary indices
@@ -146,8 +171,7 @@ rm(indices_pca)
 coef_min_max <- pca_coef[,1:3]
 
 # Scale the PCA coefficients between 0 and 1 so they can be 
-# mapped to red, green and blue channels.  These are multiplied 
-# by 255 in order be used on the hexidecimal colour scale.
+# mapped to red, green and blue channels.
 coef_min_max_norm <- coef_min_max
 min.values <- NULL
 max.values <- NULL
@@ -181,13 +205,23 @@ rm(pca_coeff)
 # generate a date sequence and locate the first of the month
 days <- length(coef_min_max[,1])/(2*1440)
 
-# Prepare civil dawn, civil dusk and sunrise and sunset times
-# These dates were from Australian Government Geoscience Australia 
-# at http://www.ga.gov.au/geodesy/astro/sunrise.jsp
-# This information is shared under the Creative Commons Attribution 3.0 Australia (CC BY 3.0 AU)
+# Load (if requried) and read the civil dawn, civil dusk and sunrise and sunset times
+# Based on Geoscience Australia material
+# http://www.ga.gov.au/geodesy/astro/sunrise.jsp
 # Please note these sunrise times are specific to location
+u <- "https://data.researchdatafinder.qut.edu.au/dataset/ed90afd5-6793-4491-b2cc-6e2b4cf01dd9/resource/098982e4-980a-4d29-9652-fb93c2d89f27/download/geoscienceaustraliasunrisetimesgympie20152016.csv"
+name <- basename(u)
+f <- paste0("C:/plos-visualization-paper/data/",name,sep="")
+if (!file.exists(f)) {
+  download.file(u, file.path("C:/plos-visualization-paper/data/", basename(u)))
+  rm(f, u)
+}
+if (file.exists(f)) {
+  rm(f, u)
+}
 
-load(file="C:/plos-visualization-paper/data/civil_dawn_2015_2016.RData")
+civil_dawn <- read.csv(paste0("C:/plos-visualization-paper/data/",name,sep=""))
+
 # convert minutes to 24 hour time
 civil_dawn$civil_dawn_times <- 
   paste(substr(civil_dawn$CivSunrise,1,1), ":",
@@ -201,8 +235,14 @@ civil_dawn$sunrise <-
 civil_dawn$sunset <- 
   paste(substr(civil_dawn$Sunset,1,2), ":",
         substr(civil_dawn$Sunset,3,4), sep="")
+civil_dawn$dates <- as.character(civil_dawn$dates)
+a <- which(nchar(civil_dawn$dates)==9)
+civil_dawn$dates[a] <- paste("0",civil_dawn$dates[a], sep = "")
+civil_dawn$dates <- paste(substr(civil_dawn$dates,7,10), "-",
+                          substr(civil_dawn$dates,4,5), "-",
+                          substr(civil_dawn$dates,1,2), sep = "")
 
-a <- which(civil_dawn$dates==substr(start,1,10))
+a <- which(civil_dawn$dates==substr(start, 1, 10))
 reference <- a:(a+days-1)
 civil_dawn_times <- civil_dawn$civil_dawn_times[reference]
 civil_dusk_times <- civil_dawn$civil_dusk_times[reference]
@@ -272,7 +312,7 @@ for (k in 1:2) {
         cex=0.7)
   # Create the sub-heading
   mtext(side=3, line = -0.3, 
-        paste(index," ", type, " indices PCA coefficients", sep = ""),
+        paste(type, " indices PCA coefficients", sep = ""),
         cex=0.6)
   
   # draw coloured polygons row by row
@@ -280,20 +320,20 @@ for (k in 1:2) {
   # set the rows starting at the top of the plot
   for(j in days:1) {
     # set the column starting on the left
-    for(k in 1:1440) {
+    for(l in 1:1440) {
       ref <- ref + 1
       # draw a square for each minute in each day 
       # using the polygon function mapping the red, green
       # and blue channels to the normalised pca-coefficients
       if(style=="false_colour") {
-        polygon(c(k,k,k+1,k+1), c(j,(j-1),(j-1),j),
+        polygon(c(l,l,l+1,l+1), c(j,(j-1),(j-1),j),
                 col=rgb(coef_min_max[ref,1],
                         coef_min_max[ref,2],
                         coef_min_max[ref,3]),
                 border = NA)  
       }
       if(style=="colour_blind") {
-        polygon(c(k,k,k+1,k+1), c(j,(j-1),(j-1),j),
+        polygon(c(l,l,l+1,l+1), c(j,(j-1),(j-1),j),
                 col=coef_min_max[ref,4],
                 border = NA)  
       }
@@ -329,7 +369,6 @@ for (k in 1:2) {
   axis(side = 4, at = first_of_each_month, tick = FALSE, 
        labels=format(dates[first_of_month],"%d %b %Y"), 
        cex.axis=0.9, las=1, line = -2.3, hadj=-0.01)
-
   at <- seq(0, 1440, 240)
   # draw dotted line to show civil-dawn
   for(i in length(civ_dawn):1) {
@@ -404,7 +443,7 @@ for (k in 1:2) {
         cex=0.7)
   # Create the sub-heading
   mtext(side=3, line = -0.3, 
-        paste(index," ", type, " indices PCA coefficients", sep = ""),
+        paste(type, " indices PCA coefficients", sep = ""),
         cex=0.6)
   
   # draw coloured polygons row by row
@@ -412,20 +451,20 @@ for (k in 1:2) {
   # set the rows starting at the top of the plot
   for(j in days:1) {
     # set the column starting on the left
-    for(k in 1:1440) {
+    for(l in 1:1440) {
       ref <- ref + 1
       # draw a square for each minute in each day 
       # using the polygon function mapping the red, green
       # and blue channels to the normalised pca-coefficients
       if(style=="false_colour") {
-        polygon(c(k,k,k+1,k+1), c(j,(j-1),(j-1),j),
+        polygon(c(l,l,l+1,l+1), c(j,(j-1),(j-1),j),
                 col=rgb(coef_min_max[ref,1],
                         coef_min_max[ref,2],
                         coef_min_max[ref,3]),
                 border = NA)  
       }
       if(style=="colour_blind") {
-        polygon(c(k,k,k+1,k+1), c(j,(j-1),(j-1),j),
+        polygon(c(l,l,l+1,l+1), c(j,(j-1),(j-1),j),
                 col=coef_min_max[ref,4],
                 border = NA)  
       }
@@ -485,4 +524,6 @@ for (k in 1:2) {
   }
   dev.off()
 }
-paste(Sys.time(), "End", sep = " ")
+end_time <- paste(Sys.time())
+diffDateTime <- as.POSIXct(end_time) - as.POSIXct(start_time)
+diffDateTime

@@ -1,4 +1,4 @@
-# Title:  Cluster Plots - Plos One paper
+# Title:  Radar Plots - Plos One paper
 # Author: Yvonne Phillips
 # Date:  20 January 2017
 
@@ -6,25 +6,39 @@
 # Content of Long-duration Audio-recordings of the Environment through 
 # Clustering and Visualisation. Plos One. 
 
+# Note: This code should only be run after 3 Hybrid clustering.R
+
 # Description:  This code generates the two versions of radar plots
 # displaying the cluster medoids using a slight alteration of the 
 # radarchart function from the fmsb R package 
 
-# File and folder requirements
-# C:/plos-visualization-paper/data/cluster_list.RData
+# Note: This file will need to be loaded manually
+# it is available from https://github.com/QutEcoacoustics/plos-visualization-paper
 # C:/plos-visualization-paper/scripts/radarPlot.R
+
+# File and folder requirements
+# These will be loaded automatically
+# C:/plos-visualization-paper/data/gympieclusterlist
+# C:/plos-visualization-paper/data/woondumclusterlist
+# C:/plos-visualization-paper/results/hclust_clusters_25000.RData
 # C:/plos-visualization-paper/plots
 
-# Time requirements: less than one minute
+# Time requirements: less than 30 seconds
 
-# Package requirements
-# cluster, fmsb
+# Package requirements: cluster, fmsb
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # Function and data sourcing for Radar Plots ---------------------------------
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # remove all objects in the global environment
 rm(list = ls())
+start_time <- paste(Sys.time())
+
+# make folder for plots if it does not exist
+f <- paste0("C:/plos-visualization-paper/plots/")
+if (!dir.exists(f)) {
+  dir.create("C:/plos-visualization-paper/plots/")
+}
 
 # source the radarPlot function
 # this is an adaption of the radarchart function in fmsb
@@ -50,15 +64,43 @@ file_name_short <- paste("hclust_clusters_",k1_value, sep = "")
 # load "hclust_clusters_(insert k1_value)" dataframe
 load(file_name)
 
-# load the cluster list 
-cluster.list <- get(file_name_short, envir=globalenv())[,column]
+# Load and read the cluster list (if necessary)
+u <- "https://data.researchdatafinder.qut.edu.au/dataset/62de1856-d030-423b-9ada-0b16eb06c0ba/resource/7a70163b-323b-4c30-aaf3-e19e934b328d/download/gympieclusterlist.csv"
+name <- basename(u)
+f <- paste0("C:/plos-visualization-paper/data/", name,sep="")
+if (!file.exists(f)) {
+  download.file(u, file.path("C:/plos-visualization-paper/data/", basename(u)))
+  rm(f, u)
+}
+gympie_cluster_list <- read.csv(paste0("C:/plos-visualization-paper/data/",name,sep=""))
+
+u <- "https://data.researchdatafinder.qut.edu.au/dataset/62de1856-d030-423b-9ada-0b16eb06c0ba/resource/2e264574-2c24-45b0-ad98-fc1ca231f0b5/download/woondumclusterlist.csv"
+name <- basename(u)
+f <- paste0("C:/plos-visualization-paper/data/",name,sep="")
+if (!file.exists(f)) {
+  download.file(u, file.path("C:/plos-visualization-paper/data/", basename(u)))
+  rm(u)
+}
+if (file.exists(f)) {
+  rm(f, u)
+}
+woondum_cluster_list <- read.csv(paste0("C:/plos-visualization-paper/data/",name,sep=""))
+cluster_list <- c(gympie_cluster_list, woondum_cluster_list)
+cluster_list <- c(cluster_list[[1]],cluster_list[[2]])
+
+rm(gympie_cluster_list, woondum_cluster_list, name)
 
 # concatenate the clusterlist and the normalised indices
-indices_norm_summary <- cbind(cluster.list, indices_norm_summary)
+indices_norm_summary <- cbind(cluster_list, indices_norm_summary)
 
 # list the cluster numbers and sort
-cluster_num <- unique(indices_norm_summary$cluster.list)
+cluster_num <- unique(indices_norm_summary$cluster_list)
 cluster_num <- sort(cluster_num)
+
+packages <- c("cluster", "fmsb")
+if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
+  install.packages(setdiff(packages, rownames(installed.packages())))  
+}
 
 # The 'cluster' package is required for the clara function
 # Maechler, M., Rousseeuw, P., Struyf, A., Hubert, M., & Hornik, K.
@@ -68,7 +110,7 @@ library(cluster)
 # determine the medoid of each cluster
 medoids <- NULL
 for(i in 1:length(cluster_num)) {
-  a <- which(indices_norm_summary$cluster.list==i)
+  a <- which(indices_norm_summary$cluster_list==i)
   clust <- indices_norm_summary[a,2:ncol(indices_norm_summary)]
   medo <- clara(clust,1)$medoids
   medoids <- rbind(medoids, medo)
@@ -82,6 +124,7 @@ colnames(medoids) <- c("clust", "BGN","SNR","ACT",
                     "ACI", "EAS", "EPS", "ECV",
                     "CLC")
 
+# Install the packages that have not been previously installed
 # The 'fmsb' package is required for the radarplot function
 library(fmsb) #Functions for Medical Statistics Book with some Demographic Data
 
@@ -186,7 +229,7 @@ if(clust %in% c(23, 49)) {
   col <- planes_col
 }
 
-a <- which(indices_norm_summary$cluster.list==clust)
+a <- which(indices_norm_summary$cluster_list==clust)
 
 length(a)
 a <- sample(a, 600)
@@ -216,3 +259,7 @@ radarPlot(rbind(rep(1,60), rep(0,60), medoids[clust,2:13]),
           axistype=0, centerzero = TRUE, plwd=1.2, 
           pdensity = 0, x1 = 1, y1 = 0, x2 = 1, y2 = 2)
 dev.off()
+
+end_time <- paste(Sys.time())
+diffDateTime <- as.POSIXct(end_time) - as.POSIXct(start_time)
+diffDateTime

@@ -7,9 +7,9 @@
 # Clustering and Visualisation. Plos One. 
 
 # Description:  This code contains a function (plot_funct) that
-# generates one or a series of two hour plots. A two hour plot displays
+# generates a series of two hour plots. A two hour plot displays
 # the average number of minutes each month in each two hour period
-# throughout the day.
+# throughout the day. These plots relate to the Woondum National Park data.
 # A dataframe (cluster_list) is created numbering the minute of the day,  
 # site, date,period of the day and a unique combined reference to the site, 
 # year, month and period. This unique reference is used by the barplot 
@@ -19,26 +19,59 @@
 # accounts for the number of days available.
 
 # File and folder requirements
-# C:/plos-visualization-paper/data/cluster_list.RData
+# These will be loaded automatically
+# C:/plos-visualization-paper/data/gympieclusterlist
+# C:/plos-visualization-paper/data/woondumclusterlist
 # C:/plos-visualization-paper/plots
 
-# Time requirement: less than 1 minute
+# Time requirement: less than 30 seconds
 
-# Package requirements
-# nil
+# Package requirements: NILL
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # Two hour plots  --------------------------------
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 rm(list = ls())
+start_time <- paste(Sys.time())
 
-# load the cluster list for the k1 25000 and k2 60 cluster run
-load(file="C:/plos-visualization-paper/data/cluster_list.RData")
+# make folder for plots if it does not exist
+f <- paste0("C:/plos-visualization-paper/plots/")
+if (!dir.exists(f)) {
+  dir.create("C:/plos-visualization-paper/plots/")
+}
+
+# Load and read the cluster list (if necessary)
+u <- "https://data.researchdatafinder.qut.edu.au/dataset/62de1856-d030-423b-9ada-0b16eb06c0ba/resource/7a70163b-323b-4c30-aaf3-e19e934b328d/download/gympieclusterlist.csv"
+name <- basename(u)
+f <- paste0("C:/plos-visualization-paper/data/",name,sep="")
+if (!file.exists(f)) {
+  download.file(u, file.path("C:/plos-visualization-paper/data/", basename(u)))
+  rm(f, u)
+}
+gympie_cluster_list <- read.csv(paste0("C:/plos-visualization-paper/data/",name,sep=""))
+
+u <- "https://data.researchdatafinder.qut.edu.au/dataset/62de1856-d030-423b-9ada-0b16eb06c0ba/resource/2e264574-2c24-45b0-ad98-fc1ca231f0b5/download/woondumclusterlist.csv"
+name <- basename(u)
+f <- paste0("C:/plos-visualization-paper/data/",name,sep="")
+if (!file.exists(f)) {
+  download.file(u, file.path("C:/plos-visualization-paper/data/", basename(u)))
+  rm(u)
+}
+if (file.exists(f)) {
+  rm(f, u)
+}
+woondum_cluster_list <- read.csv(paste0("C:/plos-visualization-paper/data/",name,sep=""))
+cluster_list <- c(gympie_cluster_list, woondum_cluster_list)
+cluster_list <- c(cluster_list[[1]],cluster_list[[2]])
+
+rm(gympie_cluster_list, woondum_cluster_list, name)
+
 minute_reference <- c(0:1439)
 minute_reference <- rep(minute_reference, (length(cluster_list)/1440))
 
 cluster_list <- data.frame(cluster_list)
 colnames(cluster_list) <- "cluster_list"
+cluster_list$minute_reference <- as.integer(0)
 cluster_list$minute_reference <- minute_reference
 
 site1 <- rep("GympieNP", nrow(cluster_list)/2)
@@ -251,18 +284,20 @@ plot_funct <- function(clust_num, colour, site) {
 tiff("C:/plos-visualization-paper/plots/Two-hour_plots.tiff",
      width = 2025, height = 1350, units = 'px', res = 300)
 par(mfrow=c(4, 14), 
-    mar=c(1, 0, 2, 0.1), oma=c(0.1, 2.1, 0, 0), xpd = NA,
+    mar=c(1, 0, 2, 0.1), oma=c(0.9, 2.1, 0, 0), xpd = NA,
     cex = 0.9, cex.axis = 0.54, cex.main = 0.9)
 
 # Start insect image
 clust_num <- 29
 colour <- insects_col
+# Set the site to Woondum (site2)
 plot_funct(clust_num, colour, "site2")
 mtext(side = 3, line = 1, "a. ORTHOPTERA - Cluster 29                                                                                                                                 ", cex=1.1)
 
 # Start Bird image
 clust_num <- 37
 colour <- birds_col
+# Set the site to Woondum (site2)
 plot_funct(clust_num, colour, "site2")
 mtext(side = 3, line = 1, "b. BIRDS - Cluster 37                                                                                                                                 ", cex=1.1)
 
@@ -272,14 +307,20 @@ mtext(side = 2, line = 1.3, outer = T, cex = 0.8,
 # Start cicada image
 clust_num <- 48
 colour <- cicadas_col
+# Set the site to Woondum (site2)
 plot_funct(clust_num, colour, "site2")
 mtext(side = 3, line = 1, "c. CICADAS - Cluster 48                                                                                                                                 ", cex=1.1)
 
 # Start quiet image
 cluster <- 13
 colour <- quiet_col
+# Set the site to Woondum (site2)
 plot_funct(cluster, colour, "site2")
 mtext(side = 3, line = 1, "d. QUIET - Cluster 13                                                                                                                                 ", cex=1.1)
-
+mtext(side = 1, "Time (hours)", outer = T)
 dev.off()
+
+end_time <- paste(Sys.time())
+diffDateTime <- as.POSIXct(end_time) - as.POSIXct(start_time)
+diffDateTime
 # End of code --------------------------------

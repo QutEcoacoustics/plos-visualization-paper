@@ -16,11 +16,14 @@
 
 # Time requirements: about 6 mintues
 
+# Package requirements: plyr, ggplot2
+
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # Polar Histogram 365 days-------------------------
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # remove all objects in the global environment
 rm(list = ls())
+start_time <- paste(Sys.time())
 
 load("C:/plos-visualization-paper/data/cluster_list.RData")
 
@@ -439,6 +442,11 @@ for(i in 1:length(date.list)) {
   print(i) # of 398
 }
 
+packages <- c("plyr", "ggplot2")
+if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
+  install.packages(setdiff(packages, rownames(installed.packages())))  
+}
+
 # The  polarHistogram365 function code below is an adaption of 
 # the polarHistogram function written by Christophe Ladroue 
 # Ladroue, C. (2012). Polar histogram  pretty and useful _ 
@@ -632,5 +640,10 @@ print(p1)
 ggsave("C:/plos-visualization-paper/plots/polar_histogram_woondum_unedited.tiff", 
        width = 7.5, height = 7.5, dpi = 300, bg = "transparent")
 
+
 # Note: editing is required on the saved images in a program such as 
 # paint.net
+
+end_time <- paste(Sys.time())
+diffDateTime <- as.POSIXct(end_time) - as.POSIXct(start_time)
+diffDateTime

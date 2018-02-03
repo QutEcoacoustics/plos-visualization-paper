@@ -14,31 +14,95 @@
 # containing the 24-hour false colour spectrograms. For the purpose of 
 # demonstrating this code, two 24-four hour false colour spectrograms
 # have been provided.
-# NOTE: This code will not work unless there is 24-hour spectrograms
-# in the specified "path" eg. C:/plos-visualization-paper/data/spectrograms
+# NOTE: This code will not work without downloading the 24-hour false-colour
+# spectrograms in the specified "path" eg. C:/plos-visualization-paper/data/spectrograms/site1
 
-# File (the cluster list only) and folder requirements
-# C:/plos-visualization-paper/data/cluster_list.RData
-# C:/plos-visualization-paper/data/spectrograms/site1
-# C:/plos-visualization-paper/data/spectrograms/site2
+# Files (cluster list and the 24 hour false-colour spectrograms) and folder requirements
+# C:/plos-visualization-paper/data/gympieclusterlist
+# C:/plos-visualization-paper/data/woondumclusterlist
+# C:/plos-visualization-paper/data/spectrograms/GympieNP/
+# C:/plos-visualization-paper/data/spectrograms/WoondumNP/
+# Note: the 24-hour false-colour spectrograms will be downloaded from
+# https://data.researchdatafinder.qut.edu.au/dataset/c3e4340d-4f56-45bf-85a6-2adb5dbf3d6b/resource/968b1492-619b-47ae-ab7d-fad88a9fa6a7/download/gympienp.zip
+# https://data.researchdatafinder.qut.edu.au/dataset/c3e4340d-4f56-45bf-85a6-2adb5dbf3d6b/resource/313a2107-8963-40bf-9934-fe9cbe458260/download/woondumnp.zip
+# The two zip files are 500 MB each, total 1 GB
 
 # Time required to run code and produce 4 composite spectrograms: 
 # 6.5 minutes (about 1.5 mintues for each composite spectrogram)
+
+# Package requirements: raster
 
 #########################################################
 # Composite false-colour spectrograms -----------------------------
 #########################################################
 # remove all objects in the global environment
 rm(list = ls())
+start_time <- paste(Sys.time())
 
-load("C:/plos-visualization-paper/data/cluster_list.RData")
+# create directory for images if it does not exist
+f <- paste0("C:/plos-visualization-paper/data/spectrograms/GympieNP/")
+if (!dir.exists(f)) {
+  dir.create("C:/plos-visualization-paper/data/spectrograms/GympieNP/")
+}
+
+f <- paste0("C:/plos-visualization-paper/data/spectrograms/WoondumNP/")
+if (!dir.exists(f)) {
+  dir.create("C:/plos-visualization-paper/data/spectrograms/WoondumNP/")
+}
+# Note the next lines will download 1 GB of data
+# Download the Gympie spectrograms
+u <- "https://data.researchdatafinder.qut.edu.au/dataset/c3e4340d-4f56-45bf-85a6-2adb5dbf3d6b/resource/968b1492-619b-47ae-ab7d-fad88a9fa6a7/download/gympienp.zip"
+name <- basename(u)
+f <- paste0("C:/plos-visualization-paper/data/spectrograms/GympieNP/", name, sep="")
+if (!file.exists(f)) {
+  download.file(u, file.path("C:/plos-visualization-paper/data/spectrograms/GympieNP/", basename(u)))
+  rm(f, u)
+}
+unzip(zipfile = "C:/plos-visualization-paper/data/spectrograms/GympieNP/gympienp.zip",
+      files = "C:/plos-visualization-paper/data/spectrograms/GympieNP/")
+# Download the Woondum spectrograms
+u <- "https://data.researchdatafinder.qut.edu.au/dataset/c3e4340d-4f56-45bf-85a6-2adb5dbf3d6b/resource/313a2107-8963-40bf-9934-fe9cbe458260/download/woondumnp.zip"
+name <- basename(u)
+f <- paste0("C:/plos-visualization-paper/data/spectrograms/WoondumNP/", name, sep="")
+if (!file.exists(f)) {
+  download.file(u, file.path("C:/plos-visualization-paper/data/spectrograms/WoondumNP/", basename(u)))
+  rm(f, u)
+}
+unzip(zipfile = "C:/plos-visualization-paper/data/spectrograms/WoondumNP/woondumnp.zip",
+      files = "C:/plos-visualization-paper/data/spectrograms/WoondumNP/")
+
+# Load (if necessary) and read the cluster list
+# Load the Gympie cluster list
+u <- "https://data.researchdatafinder.qut.edu.au/dataset/62de1856-d030-423b-9ada-0b16eb06c0ba/resource/7a70163b-323b-4c30-aaf3-e19e934b328d/download/gympieclusterlist.csv"
+name <- basename(u)
+f <- paste0("C:/plos-visualization-paper/data/",name,sep="")
+if (!file.exists(f)) {
+  download.file(u, file.path("C:/plos-visualization-paper/data/", basename(u)))
+  rm(f, u)
+}
+gympie_cluster_list <- read.csv(paste0("C:/plos-visualization-paper/data/",name,sep=""))
+
+# Load the Woondum cluster list
+u <- "https://data.researchdatafinder.qut.edu.au/dataset/62de1856-d030-423b-9ada-0b16eb06c0ba/resource/2e264574-2c24-45b0-ad98-fc1ca231f0b5/download/woondumclusterlist.csv"
+name <- basename(u)
+f <- paste0("C:/plos-visualization-paper/data/",name,sep="")
+if (!file.exists(f)) {
+  download.file(u, file.path("C:/plos-visualization-paper/data/", basename(u)))
+  rm(u)
+}
+if (file.exists(f)) {
+  rm(f, u)
+}
+woondum_cluster_list <- read.csv(paste0("C:/plos-visualization-paper/data/",name,sep=""))
+cluster_list <- c(gympie_cluster_list, woondum_cluster_list)
+cluster_list <- c(cluster_list[[1]],cluster_list[[2]])
+
+# write cluster list csv files for each site
+write.csv(cluster_list[1:(length(cluster_list)/2)], "C:/plos-visualization-paper/data/gympie_cluster_list.csv", row.names = F)
+write.csv(cluster_list[(length(cluster_list)/2+1):(length(cluster_list))], "C:/plos-visualization-paper/data/woondum_cluster_list.csv", row.names = F)
 
 k1_value <- 25000
 k2_value <- 60
-# determine missing minute summary 
-#missing_minutes_summary <- which(is.na(cluster_list)) 
-# determine a list of recorded minutes
-#z <- setdiff(1:length(cluster_list), missing_minutes_summary)
 
 days <- length(cluster_list)/(1440)
 minute_reference <- rep(0:1439, days)
@@ -58,6 +122,11 @@ colnames(first_minutes) <- c("start","end")
 
 first_minutes <- as.data.frame(first_minutes)
 
+# Install the raster package if it has not been previously installed
+packages <- c("raster")
+if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
+  install.packages(setdiff(packages, rownames(installed.packages())))  
+}
 library(raster)
 
 # plot and save an image containing a black rectangle into
@@ -94,7 +163,7 @@ spect_file_Gympie <- list.files(full.names=TRUE, recursive = T,
 # generate a list of all files containing the 24-hour spectrograms from
 # Woondum eg. "C:/plos-visualization-paper/data/spectrograms/WoondumNP/20150622/WoondumNP_20150622__2Maps.png"
 spect_file_Woondum <- list.files(full.names=TRUE, recursive = T,
-                                 path = paste(path,"\\Woondum3",sep=""),
+                                 path = paste(path,"\\WoondumNP",sep=""),
                                  pattern = "*2Maps.png") 
 spect_file_list <- c(spect_file_Gympie, spect_file_Woondum)
 # check the length of this list is the same as the nrow in first_minutes
@@ -167,3 +236,6 @@ for(j in clusters) {
   print(paste("starting", j, Sys.time(), sep = " "))
   cluster_image(j)
 }
+end_time <- paste(Sys.time())
+diffDateTime <- as.POSIXct(end_time) - as.POSIXct(start_time)
+diffDateTime

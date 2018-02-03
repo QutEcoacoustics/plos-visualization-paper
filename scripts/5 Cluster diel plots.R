@@ -11,14 +11,15 @@
 # and the sunrise and sunset times and saves them into the plots folder.
 
 # File and requirements: 
-# C:/plos-visualization-paper/data/cluster_list.RData
-# C:/plos-visualization-paper/data/civil_dawn_2015_2016.RData
+# These are all automatically loaded
+# C:/plos-visualization-paper/data/gympieclusterlist.csv
+# C:/plos-visualization-paper/data/woondumclusterlist.csv
+# C:/plos-visualization-paper/data/geoscienceaustraliasunrisetimesgympie20152016
 # C:/plos-visualization-paper/plots
 
 # Time requirements: about 3 mintues
 
-# Package requirements
-# nil
+# Package requirements: NILL
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # Cluster Diel Plot code ------------
@@ -27,12 +28,47 @@
 # Description:  This code produces a simulated dot-matrix plot from a 100 day acoustic state sequence, see Chapter 11.
 # remove all objects in the global environment
 rm(list = ls())
+start_time <- paste(Sys.time())
+start_time
+
+# make folder for plots if it does not exist
+f <- paste0("C:/plos-visualization-paper/plots/")
+if (!dir.exists(f)) {
+  dir.create("C:/plos-visualization-paper/plots/")
+}
+
+# Load and read the cluster list (if necessary)
+u <- "https://data.researchdatafinder.qut.edu.au/dataset/62de1856-d030-423b-9ada-0b16eb06c0ba/resource/7a70163b-323b-4c30-aaf3-e19e934b328d/download/gympieclusterlist.csv"
+name <- basename(u)
+f <- paste0("C:/plos-visualization-paper/data/",name,sep="")
+if (!file.exists(f)) {
+  download.file(u, file.path("C:/plos-visualization-paper/data/", basename(u)))
+  rm(f, u)
+}
+gympie_cluster_list <- read.csv(paste0("C:/plos-visualization-paper/data/",name,sep=""))
+
+u <- "https://data.researchdatafinder.qut.edu.au/dataset/62de1856-d030-423b-9ada-0b16eb06c0ba/resource/2e264574-2c24-45b0-ad98-fc1ca231f0b5/download/woondumclusterlist.csv"
+name <- basename(u)
+f <- paste0("C:/plos-visualization-paper/data/",name,sep="")
+if (!file.exists(f)) {
+  download.file(u, file.path("C:/plos-visualization-paper/data/", basename(u)))
+  rm(u)
+}
+if (file.exists(f)) {
+  rm(f, u)
+}
+woondum_cluster_list <- read.csv(paste0("C:/plos-visualization-paper/data/",name,sep=""))
+cluster_list <- rbind(gympie_cluster_list, woondum_cluster_list)
+rm(gympie_cluster_list, woondum_cluster_list, name)
 
 # set the start date in "YYYY-MM-DD" format
+# this is the recording start date
 start_date <- "2015-06-22"
 
 # load cluster list
 load(file="C:/plos-visualization-paper/data/cluster_list.RData")
+
+#write.csv(cluster_list, "C:/plos-visualization-paper/data/cluster_list.csv", row.names = F)
 
 # Generate a date sequence & locate the first of each month
 days <- floor(length(cluster_list)/(2*1440))
@@ -43,7 +79,86 @@ dates <- seq(from=start, by=interval*60, to=end)
 first_of_month <- which(substr(dates, 9, 10)=="01")
 
 # Load the civil dawn, civil dusk and sunrise and sunset times
-load(file="C:/plos-visualization-paper/data/civil_dawn_2015_2016.RData")
+#load(file="C:/plos-visualization-paper/data/civil_dawn_2015_2016.RData")
+# Load (if requried) and read the civil dawn, civil dusk and sunrise and sunset times
+# Based on Geoscience Australia material
+# http://www.ga.gov.au/geodesy/astro/sunrise.jsp
+# Please note these sunrise times are specific to location
+u <- "https://data.researchdatafinder.qut.edu.au/dataset/ed90afd5-6793-4491-b2cc-6e2b4cf01dd9/resource/098982e4-980a-4d29-9652-fb93c2d89f27/download/geoscienceaustraliasunrisetimesgympie20152016.csv"
+name <- basename(u)
+f <- paste0("C:/plos-visualization-paper/data/",name,sep="")
+if (!file.exists(f)) {
+  download.file(u, file.path("C:/plos-visualization-paper/data/", basename(u)))
+  rm(f, u)
+}
+if (file.exists(f)) {
+  rm(f, u)
+}
+
+civil_dawn <- read.csv(paste0("C:/plos-visualization-paper/data/",name,sep=""))
+civil_dawn$dates <- as.character(civil_dawn$dates)
+a <- which(nchar(civil_dawn$dates)==9)
+civil_dawn$dates[a] <- paste("0",civil_dawn$dates[a], sep = "")
+civil_dawn$dates <- paste(substr(civil_dawn$dates,7,10), "-",
+                          substr(civil_dawn$dates,4,5), "-",
+                          substr(civil_dawn$dates,1,2), sep = "")
+
+# convert minutes to 24 hour time
+civil_dawn$civil_dawn_times <- 
+  paste(substr(civil_dawn$CivSunrise,1,1), ":",
+        substr(civil_dawn$CivSunrise,2,3), sep="")
+civil_dawn$civil_dusk_times <- 
+  paste(substr(civil_dawn$CivSunset,1,2), ":",
+        substr(civil_dawn$CivSunset,3,4), sep="")
+civil_dawn$sunrise <- 
+  paste(substr(civil_dawn$Sunrise,1,1), ":",
+        substr(civil_dawn$Sunrise,2,3), sep="")
+civil_dawn$sunset <- 
+  paste(substr(civil_dawn$Sunset,1,2), ":",
+        substr(civil_dawn$Sunset,3,4), sep="")
+civil_dawn$dates <- as.character(civil_dawn$dates)
+
+a <- which(civil_dawn$dates==substr(start, 1, 10))
+days <- length(cluster_list)/(1440*2)
+reference <- a:(a+days-1)
+
+civil_dawn_times <- civil_dawn$civil_dawn_times[reference]
+civil_dusk_times <- civil_dawn$civil_dusk_times[reference]
+sunrise_times <- civil_dawn$sunrise[reference]
+sunset_times <- civil_dawn$sunset[reference]
+
+civ_dawn <- NULL
+for(i in 1:length(civil_dawn_times)) {
+  hour <- as.numeric(substr(civil_dawn_times[i], 1,1))
+  min <- as.numeric(substr(civil_dawn_times[i], 3,4))
+  minute <- hour*60 + min
+  civ_dawn <- c(civ_dawn, minute)
+}
+
+civ_dusk <- NULL
+for(i in 1:length(civil_dusk_times)) {
+  hour <- as.numeric(substr(civil_dusk_times[i], 1,2))
+  min <- as.numeric(substr(civil_dusk_times[i], 4,5))
+  minute <- hour*60 + min
+  civ_dusk <- c(civ_dusk, minute)
+}
+
+sunrise <- NULL
+for(i in 1:length(sunrise_times)) {
+  hour <- as.numeric(substr(sunrise_times[i], 1,1))
+  min <- as.numeric(substr(sunrise_times[i], 3,4))
+  minute <- hour*60 + min
+  sunrise <- c(sunrise, minute)
+}
+
+sunset <- NULL
+for(i in 1:length(sunset_times)) {
+  hour <- as.numeric(substr(sunset_times[i], 1,2))
+  min <- as.numeric(substr(sunset_times[i], 4,5))
+  minute <- hour*60 + min
+  sunset <- c(sunset, minute)
+}
+
 
 # convert the start date in "YYYY-MM-DD" format
 start <- as.POSIXct(start_date)
@@ -260,3 +375,6 @@ for(i in 1:2) {
   }
   dev.off()
 }
+end_time <- paste(Sys.time())
+diffDateTime <- as.POSIXct(end_time) - as.POSIXct(start_time)
+diffDateTime

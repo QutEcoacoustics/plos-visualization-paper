@@ -13,22 +13,62 @@
 # chrisladroue.com/wp-content/uploads/2012/02/polarHistogram.R.zip
 
 # File (the cluster list & sunset times) and folder requirements
-# C:/plos-visualization-paper/data/cluster_list.RData
-# C:/plos-visualization-paper/data/civil_dawn_2015_2016.RData
+# C:/plos-visualization-paper/data/gympieclusterlist
+# C:/plos-visualization-paper/data/woondumclusterlist
+# C:/plos-visualization-paper/data/civil_dawn_2015_201geoscienceaustraliasunrisetimesgympie20152016.RData
 # C:/plos-visualization-paper/results
 # C:/plos-visualization-paper/plots
 
-# Time requirements: about 65 minutes
+# Time requirements: about 90 minutes
 
-# Package requirements
-# plyr, ggplot2 - required for polarHistogram function
+# Package requirements: plyr, ggplot2 - required for polarHistogram function
+
+# Note the C:/plos-visualization-paper/results/polar_data.csv file 
+# produced by this code is required for the 12 rain and insect 
+# correlation.R code
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # remove all objects in the global environment
 rm(list = ls())
+start_time1 <- paste(Sys.time())
 
-# load the cluster list for the k1 25000 and k2 60 cluster run
-load(file="C:/plos-visualization-paper/data/cluster_list.RData")
+# make folder for plots if it does not exist
+f <- paste0("C:/plos-visualization-paper/plots/")
+if (!dir.exists(f)) {
+  dir.create("C:/plos-visualization-paper/plots/")
+}
+
+# make folder for plots if it does not exist
+f <- paste0("C:/plos-visualization-paper/results/")
+if (!dir.exists(f)) {
+  dir.create("C:/plos-visualization-paper/results/")
+}
+
+# Load and read the cluster list (if necessary)
+u <- "https://data.researchdatafinder.qut.edu.au/dataset/62de1856-d030-423b-9ada-0b16eb06c0ba/resource/7a70163b-323b-4c30-aaf3-e19e934b328d/download/gympieclusterlist.csv"
+name <- basename(u)
+f <- paste0("C:/plos-visualization-paper/data/",name,sep="")
+if (!file.exists(f)) {
+  download.file(u, file.path("C:/plos-visualization-paper/data/", basename(u)))
+  rm(f, u)
+}
+gympie_cluster_list <- read.csv(paste0("C:/plos-visualization-paper/data/",name,sep=""))
+
+u <- "https://data.researchdatafinder.qut.edu.au/dataset/62de1856-d030-423b-9ada-0b16eb06c0ba/resource/2e264574-2c24-45b0-ad98-fc1ca231f0b5/download/woondumclusterlist.csv"
+name <- basename(u)
+f <- paste0("C:/plos-visualization-paper/data/",name,sep="")
+if (!file.exists(f)) {
+  download.file(u, file.path("C:/plos-visualization-paper/data/", basename(u)))
+  rm(u)
+}
+if (file.exists(f)) {
+  rm(f, u)
+}
+woondum_cluster_list <- read.csv(paste0("C:/plos-visualization-paper/data/",name,sep=""))
+cluster_list <- c(gympie_cluster_list, woondum_cluster_list)
+cluster_list <- c(cluster_list[[1]],cluster_list[[2]])
+
+rm(gympie_cluster_list, woondum_cluster_list, name)
 
 # generate a 30 minute date sequence
 startDate = as.POSIXct("2015-06-22 00:00")
@@ -62,7 +102,7 @@ counts <- cbind(counts, sites, dateSeq30min)
 write.csv(counts, "C:/plos-visualization-paper/results/30minute.csv", row.names = FALSE)
 
 min30_data <- read.csv("C:/plos-visualization-paper/results/30minute.csv", header = T)
-
+clusters <- min30_data
 # generate a time sequence
 startDate = as.POSIXct("2013-12-23 00:15:00")
 endDate = as.POSIXct("2013-12-23 23:45:00")
@@ -71,6 +111,7 @@ head(dateSeq5sec)
 times <- substr(dateSeq5sec, 12, 16)
 
 # duplicate times to the length of the data.frame
+#times <- rep(times, (nrow(clusters)/length(times)) )
 times <- rep(times, (nrow(clusters)/length(times)) )
 
 # fill the 'family' column with a month description
@@ -134,8 +175,7 @@ for(i in 1:60) {
   cluster_names <- c(cluster_names, paste("cluster",i,sep = ""))
 }
 
-
-# WARNING lines 135 to 185 takes takes about 40 minutes to run
+# WARNING the next lines takes takes about 40 minutes to run
 # this code converts the data to a long format needed for the
 # polarHistogram function
 data_df <- NULL
@@ -192,13 +232,17 @@ df <- rbind(data_df, data_df1, data_df2, data_df3)
 
 # save the dataset in the results folder
 write.csv(df, "C:/plos-visualization-paper/results/polar_data.csv", row.names = FALSE)
-#rm(data_df, data_df1, data_df2, data_df3) #******************
+#rm(data_df, data_df1, data_df2, data_df3)
+end_time1 <- paste(Sys.time())
+diffDateTime <- as.POSIXct(end_time1) - as.POSIXct(start_time1)
+diffDateTime
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # Rose plots ---------------------------------
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # remove all objects in the global environment
 rm(list = ls())
+start_time2 <- paste(Sys.time())
 
 # if the above code has been run then read the file
 f <- paste0("C:/plos-visualization-paper/results/polar_data.csv")
@@ -212,11 +256,49 @@ df$family <- as.character(df$family)
 df$score <- as.character(df$score)
 df$value <- as.numeric(df$value)
 
-# sunrise dataset for the 15th of each month
-load("C:/plos-visualization-paper/data/civil_dawn_2015_2016.RData")
+# Load the civil dawn, civil dusk and sunrise and sunset times
+#load(file="C:/plos-visualization-paper/data/civil_dawn_2015_2016.RData")
+# Load (if requried) and read the civil dawn, civil dusk and sunrise and sunset times
+# Based on Geoscience Australia material
+# http://www.ga.gov.au/geodesy/astro/sunrise.jsp
+# Please note these sunrise times are specific to location
+u <- "https://data.researchdatafinder.qut.edu.au/dataset/ed90afd5-6793-4491-b2cc-6e2b4cf01dd9/resource/098982e4-980a-4d29-9652-fb93c2d89f27/download/geoscienceaustraliasunrisetimesgympie20152016.csv"
+name <- basename(u)
+f <- paste0("C:/plos-visualization-paper/data/",name,sep="")
+if (!file.exists(f)) {
+  download.file(u, file.path("C:/plos-visualization-paper/data/", basename(u)))
+  rm(f, u)
+}
+if (file.exists(f)) {
+  rm(f, u)
+}
+
+civil_dawn <- read.csv(paste0("C:/plos-visualization-paper/data/",name,sep=""))
+civil_dawn$dates <- as.character(civil_dawn$dates)
+a <- which(nchar(civil_dawn$dates)==9)
+civil_dawn$dates[a] <- paste("0",civil_dawn$dates[a], sep = "")
+civil_dawn$dates <- paste(substr(civil_dawn$dates,7,10), "-",
+                          substr(civil_dawn$dates,4,5), "-",
+                          substr(civil_dawn$dates,1,2), sep = "")
+
+# convert minutes to 24 hour time
+civil_dawn$civil_dawn_times <- 
+  paste(substr(civil_dawn$CivSunrise,1,1), ":",
+        substr(civil_dawn$CivSunrise,2,3), sep="")
+civil_dawn$civil_dusk_times <- 
+  paste(substr(civil_dawn$CivSunset,1,2), ":",
+        substr(civil_dawn$CivSunset,3,4), sep="")
+civil_dawn$sunrise <- 
+  paste(substr(civil_dawn$Sunrise,1,1), ":",
+        substr(civil_dawn$Sunrise,2,3), sep="")
+civil_dawn$sunset <- 
+  paste(substr(civil_dawn$Sunset,1,2), ":",
+        substr(civil_dawn$Sunset,3,4), sep="")
+civil_dawn$dates <- as.character(civil_dawn$dates)
+
 a <- which(substr(civil_dawn$dates,9,10)==15)
 paste(civil_dawn$dates[a])
-civil_dawn <- civil_dawn[a[6:19],1:3]
+civil_dawn <- civil_dawn[a[6:19],1:3] #88888888888888
 civil_dawn$Sunrise <- (as.numeric(substr(as.numeric(civil_dawn$Sunrise),1,1))*60) +
   as.numeric(substr(as.numeric(civil_dawn$Sunrise),2,3))
 civil_dawn$Sunset <- (as.numeric(substr(as.numeric(civil_dawn$Sunset),1,2))*60) +
@@ -231,13 +313,18 @@ list1 <- c("cluster37", "cluster44", "cluster48")
 
 # Colours for each class
 insect_col <- "#F0E442"
-rain_col <- "#0072B2"
-wind_col <- "#56B4E9"
-bird_col <- "#009E73"
+rain_col   <- "#0072B2"
+wind_col   <- "#56B4E9"
+bird_col   <- "#009E73"
 cicada_col <- "#E69F00"
-quiet_col <- "#999999"
-plane_col <- "#CC79A7"
-na_col <- "white"
+quiet_col  <- "#999999"
+plane_col  <- "#CC79A7"
+na_col     <- "white"
+
+packages <- c("plyr", "ggplot2")
+if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
+  install.packages(setdiff(packages, rownames(installed.packages())))  
+}
 
 for(t in 1:length(list1)) {
   clust <- list1[t]
@@ -1401,3 +1488,8 @@ for(t in 1:length(list1)) {
   }
   print(t) # of 3 clusters
 }
+end_time2 <- paste(Sys.time())
+diffDateTime1 <- as.POSIXct(end_time1) - as.POSIXct(start_time1)
+diffDateTime1
+diffDateTime2 <- as.POSIXct(end_time2) - as.POSIXct(start_time2)
+diffDateTime2
