@@ -6,23 +6,34 @@
 # Content of Long-duration Audio-recordings of the Environment through 
 # Clustering and Visualisation. Plos One. 
 
-# Description:  This code produces 
+# Description:  This code produces two sammon maps using the medoids
+# of the 60 clusters.
+
+# Note this code should only be run after 1 Normalisation and Correlation 
+# Matrix and 3 Hybrid clustering
 
 # File and requirements (the normalised summary indices) 
-# Note: The file was generated in normalisation code and should already
-# be in the results folder
 # C:/plos-visualization-paper/results/Gympie_woondum_normalised_summary_indices.RData
+# This folder will be generated automatically if necessary
+# C:/plos-visualization-paper/plots/
 
-# Time requirements: about xxx minutes
+# Time requirements: about 8 minutes
 
-# Package requirements
-# cluster, MASS and plotrix
+# Package requirements: cluster, MASS and plotrix
+# Note the code checks for installed packages before installing
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # Sammon map 1----------------------------
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # remove all objects in the global environment
 rm(list = ls())
+start_time <- paste(Sys.time())
+
+# make folder for plots if it does not exist
+f <- paste0("C:/plos-visualization-paper/plots/")
+if (!dir.exists(f)) {
+  dir.create("C:/plos-visualization-paper/plots/")
+}
 
 # load normalised summary indices
 load("C:/plos-visualization-paper/results/Gympie_woondum_normalised_summary_indices.RData")
@@ -46,6 +57,12 @@ indices_norm_summary <- cbind(cluster.list, indices_norm_summary)
 # list the cluster numbers and sort
 cluster_num <- unique(indices_norm_summary$cluster.list)
 cluster_num <- sort(cluster_num)
+
+# Install the packages that have not been previously installed
+packages <- c("cluster", "MASS", "plotrix")
+if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
+  install.packages(setdiff(packages, rownames(installed.packages())))  
+}
 
 # The 'cluster' package is required for the clara function
 # Maechler, M., Rousseeuw, P., Struyf, A., Hubert, M., & Hornik, K.
@@ -185,9 +202,9 @@ plot(clusters$points1,
      main = "Sammon map - sixty clusters",
      xlab = "", ylab = "", mgp =c(2,0.5,0),
      xlim = c((min(clusters$points1)-0.05),
-              (max(clusters$points1)+0.25)),
+              (max(clusters$points1)+0.25)), # adjustments for legend
      ylim = c((min(clusters$points2)-0.11),
-              (max(clusters$points2)+0.13)),
+              (max(clusters$points2)+0.13)), # adjustments for legend
      cex.axis=1, cex.lab=0.6, las=1, cex.main=1,
      bg = "transparent")
 mtext(side=2, "y", las=1, cex = 1.2, line = 2.1, padj=1)
@@ -234,7 +251,7 @@ dev.off()
 # resort the cluster dataframe to order the cluster list
 clusters <- clusters[order(clusters$clusters),]
 
-# WARNING the calculation of the radii takes 12 minutes
+# WARNING the calculation of the radii takes 7 minutes
 statistics <- NULL
 statistics <- data.frame(statistics)
 for(j in cluster_num) {
@@ -262,7 +279,7 @@ for(j in cluster_num) {
     distances <- c(distances, d)
   }
   prob <- 0.90    
-  statistics[j,1] <- quantile(distances,pvec)
+  statistics[j,1] <- quantile(distances, prob)
   print(j) # of 60
 }
 rm(temp_data)
@@ -431,3 +448,7 @@ text(x = 2, y = -1.05, "IV", cex = 1, family="A", font = 2)
 mtext(at = 1.29, line = 0.5, side = 2, "b.", cex=1.2, las=1)
 
 dev.off()
+
+end_time <- paste(Sys.time())
+diffDateTime <- as.POSIXct(end_time) - as.POSIXct(start_time)
+diffDateTime

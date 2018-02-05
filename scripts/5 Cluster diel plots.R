@@ -58,17 +58,13 @@ if (file.exists(f)) {
   rm(f, u)
 }
 woondum_cluster_list <- read.csv(paste0("C:/plos-visualization-paper/data/",name,sep=""))
-cluster_list <- rbind(gympie_cluster_list, woondum_cluster_list)
+cluster_list <- c(gympie_cluster_list, woondum_cluster_list)
+cluster_list <- c(cluster_list[[1]],cluster_list[[2]])
 rm(gympie_cluster_list, woondum_cluster_list, name)
 
 # set the start date in "YYYY-MM-DD" format
 # this is the recording start date
 start_date <- "2015-06-22"
-
-# load cluster list
-load(file="C:/plos-visualization-paper/data/cluster_list.RData")
-
-#write.csv(cluster_list, "C:/plos-visualization-paper/data/cluster_list.csv", row.names = F)
 
 # Generate a date sequence & locate the first of each month
 days <- floor(length(cluster_list)/(2*1440))
@@ -229,6 +225,7 @@ for(i in 1: length(year_month)) {
   count <- which(substr(cluster_list$dates,1,7)==year_month[i])
   count <- length(count)/1440
   days_per_month <- c(days_per_month, count/2)
+  print(i)
 }
 
 # define acoustic classes 

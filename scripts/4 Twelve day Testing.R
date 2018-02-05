@@ -1150,6 +1150,22 @@ colnames(I3DD_values) <- c("k1", "k2", "I3DD")
 folder <- "C:/plos-visualization-paper/results/"
 write.csv(I3DD_values, paste(folder,"I3DD_values_", csv.name,
                              ".csv",sep=""), row.names = F)
+# I3DD plot
+I3DD <- read.csv("C:/plos-visualization-paper/results/I3DD_values_hybrid25000.csv", header = T)
+xmin <- 40
+xmax <- 80
+ymin <- 1
+ymax <- 2.2
+xlim <- c(xmin, xmax)
+ylim <- c(ymin, ymax)
+tiff(paste("C:/plos-visualization-paper/plots/I3DD_plot_25000.tiff"))
+plot(I3DD$k2,I3DD$I3DD, type = "b", pch=19,
+     xlim = xlim, ylim = ylim, mgp = c(2,0.8,0),
+     main="I3DD distance 25000",
+     ylab = "I3DD distance",
+     xlab = "k2")
+dev.off()
+
 end_time <- paste(Sys.time())
 diffDateTime <- as.POSIXct(end_time) - as.POSIXct(start_time)
 diffDateTime

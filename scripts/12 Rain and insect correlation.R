@@ -12,6 +12,7 @@
 # Note: This file should only be run after 9 Rose plots.R because it requires 
 # the polar_plot.csv file in the results folder
 
+# Time requirement: about 1 minute
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # Rain and insect correlation ---------------------------
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -20,7 +21,7 @@ rm(list = ls())
 start_time <- paste(Sys.time())
 
 # read file containing summary of 30 minute segments
-df <- read.csv("C:/Work/Projects/Twelve_month_clustering/Saving_dataset/polarHistograms/polar_data.csv", header = T)
+df <- read.csv("C:/plos-visualization-paper/results/polar_data.csv", header = T)
 
 # convert from 30 minute to 24 hour summaries
 length <- nrow(df)
@@ -61,7 +62,6 @@ woon_matrix <- matrix(woon_total, nrow = days,
 start <-  strptime("20150622", format="%Y%m%d")
 finish <- strptime("20160723", format="%Y%m%d")
 dates <- seq(start, finish, by = "1440 mins")
-any(is.na(dates)) #FALSE
 date.list <- NULL
 for (i in 1:length(dates)) {
   dat <- substr(as.character(dates[i]),1,10)
@@ -85,11 +85,17 @@ a <- which(substr(date.list, 9, 10)=="01")
 # repeat date in the next position
 date.list[a+1] <- date.list[a]
 blank_date_list <- rep("", length(date.list))
-#b <- max(n)- a + 1
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # choose the day numbers
 n <- 1:101
+# choose the day numbers
+# 10 = 1 July 2015; 41 = 1 August 2015; 72 = 1 Septebmer 2015
+# 102 = 1 October 2015;  133 = 1 November 2015; 163 = 1 December 2015
+# 194 = 1 January 2016; 225 = 1 February 2016; 254 = 1 March 2016
+# 285 = 1 April 2016; #315 = 1 May 2016; #346 = 1 June 2016; 
+# 386 = 1 July 2016
+
 # choose the rain clusters
 rain_clusters <- c(10, 18, 21, 59)
 x <- cbind(gym_matrix[n, rain_clusters])
@@ -105,7 +111,6 @@ gym_y <- rowSums(y)
 max_x <- max(gym_x)
 max_y <- max(gym_y)
 
-
 # Woondum
 # choose the rain clusters
 x <- cbind(woon_matrix[n, rain_clusters])
@@ -118,17 +123,11 @@ woon_y <- rowSums(y)
 max_x <- max(woon_x)
 max_y <- max(woon_y)
 
-# Plot an empty plot with no axes or frame
-#png(paste("plots\\woondum_Insect",toString(insect_clusters),"_rain",
-#          toString(rain_clusters), "_n_", min(n), "_", max(n), ".png", sep = ""), 
-#    height = 675, width = 1500)
-m <- rbind(c(1,1,1),
-           c(1,1,1),
-           c(1,1,1),
-           c(2,2,2),
-           c(2,2,2))
-layout(m)
-layout.show(2)
+site <- "Woondum"
+if(site=="Gympie") {
+  woon_x <- gym_x
+  woon_y <- gym_y 
+}
 
 for(i in 1:length(date.list)) {
   if(date.list[i]=="2015-07-01") {
@@ -149,12 +148,20 @@ for(i in 1:length(date.list)) {
 }
 
 date.list
-#par(mar=c(1,3,3,0))
-tiff("C:/Work/Projects/Twelve_month_clustering/Saving_dataset/Figures for plos article/Fig15.tiff", 
+
+# space between sets not columns
+gap <- 20
+# width and spacing of columns
+width <- 3
+space <- 0.4
+
+dev.off()
+tiff(paste("C:/plos-visualization-paper/plots/",
+           site,"_Rain_insect_correlation.tiff", sep=""), 
      width = 2025, height = 1380, units = 'px', res = 300)
 
-par(mar=c(0.1, 3.4, 3.5, 0),  #, mfcol=c(2,1) ,
-    cex = 0.6, cex.axis = 1, cex.main = 1)
+par(mar=c(0.1, 3.4, 3.5, 0), cex = 0.6, 
+    cex.axis = 1, cex.main = 1)
 # set up the plot layout
 m <- rbind(c(1,1,1),
            c(1,1,1),
@@ -174,11 +181,6 @@ m <- rbind(c(1,1,1),
 layout(m)
 layout.show(3)
 
-# space between sets not columns
-gap <- 20
-# width and spacing of columns
-width <- 3
-space <- 0.4
 # empty plot
 plot(x = c(0,((width+space)*(length(n)-1))), type = "n",
      y = c(-(max_x+12),(max_y+12)), xlab="", ylab="",
@@ -197,7 +199,6 @@ ref <- 0
 for(i in 1:length(woon_x)) {
   rect(ref, -gap, ref+width, -(woon_x[i]+gap), col = rain_col)
   ref <- ref + (width+space)
-  
 }
 axis(side = 2, at = (seq(0, max(rowSums(y)),50)+gap), 
      seq(0, max(rowSums(y)), 50), line = -1.4, cex=2.2)
@@ -212,8 +213,6 @@ for(i in 1:length(date.ref)) {
        paste(date.list[date.ref[i]]), pos = 4)
 }
 abline(v=((a-min(n))*(width+space)))
-#par(font=2, mar=c(2, 3, 3, 0), mfcol=c(2,1),
-#            cex = 0.6, cex.axis = 1, cex.main = 1)
 mtext(side = 3, paste(site, " - Rain clusters (", 
                       toString(rain_clusters),
                       ") and Insect clusters (", 
@@ -221,18 +220,9 @@ mtext(side = 3, paste(site, " - Rain clusters (",
       outer = F, cex = 1, line=2)
 mtext(side=3,"Days from 22 June to 30 September 2015",
       line=0.6, cex=0.8)
-
-#par(font=1)
 mtext(side = 2, "Minutes per day", line = 1.2)
 mtext(side = 3, "a.", cex = 1.2, adj = 0.005, outer = TRUE,
       line = -1.8)
-# Perform cross correlation on both the Woondum data
-#png(paste("plots\\cross-corr_woondum_insects",toString(insect_clusters),"_rain",
-#          toString(rain_clusters), "_n_", min(n), "_", max(n), ".png", sep = ""), 
-#    height = 450, width = 600)
-#par(mar=c(3.8, 3.8, 0, 1), oma=c(0,0,2,0), cex = 1.2, 
-#    cex.axis = 1.2)
-# empty plot to fill the plot 2 space
 plot(c(0, 1440), c(1440, 0), 
      type = "n",axes=FALSE, frame.plot=FALSE,
      xlab="", ylab="")
@@ -249,3 +239,7 @@ mtext(side = 2, "Cross-correlation", line = 2.5)
 mtext(side = 3, "b.", cex = 1.2, adj = 0.005, outer = TRUE,
       line = -20)
 dev.off()
+
+end_time <- paste(Sys.time())
+diffDateTime <- as.POSIXct(end_time) - as.POSIXct(start_time)
+diffDateTime

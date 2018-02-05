@@ -36,7 +36,7 @@ if (!file.exists(f)) {
   download.file(u, file.path("C:/plos-visualization-paper/data/", basename(u)))
   rm(f, u)
 }
-gympie_indices <- read.csv(paste0("C:/plos-visualization-paper/data/",name,sep=""))
+gympie_indices <- read.csv(paste0("C:/plos-visualization-paper/data/",name,sep=""), header=T)
 
 u <- "https://data.researchdatafinder.qut.edu.au/dataset/0f706895-37df-4a15-a7a6-3c9e5e2a3dd0/resource/0869bf65-0951-4636-ae4a-fec37528a32d/download/woondum2015062220160723towseyindices.csv"
 name <- basename(u)
@@ -48,7 +48,7 @@ if (!file.exists(f)) {
 if (file.exists(f)) {
   rm(f, u)
 }
-woondum_indices <- read.csv(paste0("C:/plos-visualization-paper/data/",name,sep=""))
+woondum_indices <- read.csv(paste0("C:/plos-visualization-paper/data/",name,sep=""), header = T)
 indices_all <- rbind(gympie_indices, woondum_indices)
 rm(gympie_indices, woondum_indices)
 

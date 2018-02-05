@@ -25,7 +25,7 @@
 # Note this package will be downloaded if it has not been 
 # previously installed
 
-# Time requirements: about 8-10 hours for each k1 cluster run
+# Time requirements: about 10 hours for each k1 cluster run
 # Note: this code is set up to run only the k1 = 25000 cluster run
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -70,8 +70,7 @@ k1 <- i <- 25000   # other k1 values include 17500, 20000 and 22500
 k2 <- seq(5, 100, 5)
 
 paste(Sys.time(), " Starting kmeans clustering", sep = " ")
-#for (k in 1:1) {
-k=1
+for (k in 1:1) {
 # The kmeans clustering takes between 1.5 and 1.75 hours for each 
 # k1 value so I have set this to only complete k1=25000
 # to run each of the k1 values change line 52 to for(k in 1:4) {
@@ -93,7 +92,7 @@ for (i in 1:length(list)) {
   rm(list = list[i]) 
 }
 print(paste(Sys.time()))
-#}
+}
 paste(Sys.time(), " End kmeans clustering", sep = " ")
 
 ################################################
@@ -103,7 +102,6 @@ paste(Sys.time(), "Starting hclust")
 folder <- "C:/plos-visualization-paper/results"
 
 kmeansCenters <- kmeansObj$centers
-kmeansCenters <- as.hclust(centers25000)
 
 # Hierarchically cluster the centers from kmeans
 paste(Sys.time(), "Starting hclust function")

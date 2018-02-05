@@ -11,7 +11,8 @@
 # displays the occurance of the acoustic classes throughout the year.
 
 # File (the cluster list only) and folder requirements
-# C:/plos-visualization-paper/data/cluster_list.RData
+# C:/plos-visualization-paper/data/gympieclusterlist
+# C:/plos-visualization-paper/data/woondumclusterlist
 # C:/plos-visualization-paper/plots
 
 # Time requirements: about 6 mintues
@@ -25,7 +26,38 @@
 rm(list = ls())
 start_time <- paste(Sys.time())
 
-load("C:/plos-visualization-paper/data/cluster_list.RData")
+# make folder for plots if it does not exist
+f <- paste0("C:/plos-visualization-paper/plots/")
+if (!dir.exists(f)) {
+  dir.create("C:/plos-visualization-paper/plots/")
+}
+
+# Load and read the cluster list (if necessary)
+u <- "https://data.researchdatafinder.qut.edu.au/dataset/62de1856-d030-423b-9ada-0b16eb06c0ba/resource/7a70163b-323b-4c30-aaf3-e19e934b328d/download/gympieclusterlist.csv"
+name <- basename(u)
+f <- paste0("C:/plos-visualization-paper/data/",name,sep="")
+if (!file.exists(f)) {
+  download.file(u, file.path("C:/plos-visualization-paper/data/", basename(u)))
+  rm(f, u)
+}
+gympie_cluster_list <- read.csv(paste0("C:/plos-visualization-paper/data/",name,sep=""))
+
+u <- "https://data.researchdatafinder.qut.edu.au/dataset/62de1856-d030-423b-9ada-0b16eb06c0ba/resource/2e264574-2c24-45b0-ad98-fc1ca231f0b5/download/woondumclusterlist.csv"
+name <- basename(u)
+f <- paste0("C:/plos-visualization-paper/data/",name,sep="")
+if (!file.exists(f)) {
+  download.file(u, file.path("C:/plos-visualization-paper/data/", basename(u)))
+  rm(u)
+}
+if (file.exists(f)) {
+  rm(f, u)
+}
+woondum_cluster_list <- read.csv(paste0("C:/plos-visualization-paper/data/",name,sep=""))
+cluster_list <- c(gympie_cluster_list, woondum_cluster_list)
+cluster_list <- c(cluster_list[[1]],cluster_list[[2]])
+
+rm(gympie_cluster_list, woondum_cluster_list, name)
+
 
 # determine missing minute summary 
 missing_minutes_summary <- which(is.na(cluster_list)) 
@@ -641,8 +673,7 @@ ggsave("C:/plos-visualization-paper/plots/polar_histogram_woondum_unedited.tiff"
        width = 7.5, height = 7.5, dpi = 300, bg = "transparent")
 
 
-# Note: editing is required on the saved images in a program such as 
-# paint.net
+# Note: editing is required on the saved images 
 
 end_time <- paste(Sys.time())
 diffDateTime <- as.POSIXct(end_time) - as.POSIXct(start_time)
