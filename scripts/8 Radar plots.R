@@ -205,12 +205,12 @@ dev.off()
 # initialise a dataframe for a 100 minute sample of each cluster
 temp_indices_norm_summary <- data.frame(matrix(0, nrow = 100, ncol = 12))
 
-ref<- 1
+ref <- 1
 clust <- 34
 if(clust %in% c(34,44, 48)) {
   col <- cicadas_col
 }
-if(clust %in% c(37, 3)) {
+if(clust %in% c(37, 3, 39)) {
   col <- birds_col
 }
 if(clust %in% c(29, 1)) {
@@ -263,3 +263,34 @@ dev.off()
 end_time <- paste(Sys.time())
 diffDateTime <- as.POSIXct(end_time) - as.POSIXct(start_time)
 diffDateTime
+
+clust <- 39
+tiff(paste("C:/plos-visualization-paper/plots/radar_plot_alternative_clust", clust, ".tiff", sep=""), 
+     height=700, width=700, units = "px", res=300)
+par(mfrow=c(1,1), xpd=NA, #decrease default margin
+    mgp = c(0, 0.2, 0), cex = 0.6, oma = c(0, 0, 0, 0)) 
+radarPlot(rbind(rep(1,60), rep(0,60), medoids[clust,-1]), 
+          pfcol=colours[2], seg = 5, vlcex = 1.4, 
+          axistype=0, centerzero = TRUE, plwd = 1.5, 
+          pdensity = 60, x1 = 1, y1 = 0, x2 = 1, y2 = 2)
+dev.off()
+clust <- 41
+tiff(paste("C:/plos-visualization-paper/plots/radar_plot_alternative_clust", clust, ".tiff", sep=""), 
+     height=700, width=700, units = "px", res=300)
+par(mfrow=c(1,1), xpd=NA, #decrease default margin
+    mgp = c(0, 0.2, 0), cex = 0.6, oma = c(0, 0, 0, 0)) 
+radarPlot(rbind(rep(1,60), rep(0,60), medoids[clust,-1]), 
+          pfcol=colours[1], seg = 5, vlcex = 1.4, 
+          axistype=0, centerzero = TRUE, plwd = 1.5, 
+          pdensity = 60, x1 = 1, y1 = 0, x2 = 1, y2 = 2)
+dev.off()
+clust <- 13
+tiff(paste("C:/plos-visualization-paper/plots/radar_plot_alternative_clust", clust, ".tiff", sep=""), 
+     height=700, width=700, units = "px", res=300)
+par(mfrow=c(1,1), xpd=NA, #decrease default margin
+    mgp = c(0, 0.2, 0), cex = 0.6, oma = c(0, 0, 0, 0)) 
+radarPlot(rbind(rep(1,60), rep(0,60), medoids[clust,-1]), 
+          pfcol=colours[1], seg = 5, vlcex = 1.4, 
+          axistype=0, centerzero = TRUE, plwd = 1.5, 
+          pdensity = 60, x1 = 1, y1 = 0, x2 = 1, y2 = 2)
+dev.off()

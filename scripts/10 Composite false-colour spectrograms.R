@@ -40,6 +40,11 @@ rm(list = ls())
 start_time <- paste(Sys.time())
 
 # create directory for images if it does not exist
+f <- paste0("C:/plos-visualization-paper/data/spectrograms/")
+if (!dir.exists(f)) {
+  dir.create(path = "C:/plos-visualization-paper/data/spectrograms/")
+}
+
 f <- paste0("C:/plos-visualization-paper/data/spectrograms/GympieNP/")
 if (!dir.exists(f)) {
   dir.create("C:/plos-visualization-paper/data/spectrograms/GympieNP/")
@@ -54,22 +59,26 @@ if (!dir.exists(f)) {
 u <- "https://data.researchdatafinder.qut.edu.au/dataset/c3e4340d-4f56-45bf-85a6-2adb5dbf3d6b/resource/968b1492-619b-47ae-ab7d-fad88a9fa6a7/download/gympienp.zip"
 name <- basename(u)
 f <- paste0("C:/plos-visualization-paper/data/spectrograms/GympieNP/", name, sep="")
+# Warning: This downloads 0.5 GB of information
 if (!file.exists(f)) {
-  download.file(u, file.path("C:/plos-visualization-paper/data/spectrograms/GympieNP/", basename(u)))
+  download.file(u, destfile = paste("C:/plos-visualization-paper/data/spectrograms/GympieNP/", basename(u), sep=""))
   rm(f, u)
 }
+setwd("C:\\plos-visualization-paper\\data\\spectrograms\\")
 unzip(zipfile = "C:/plos-visualization-paper/data/spectrograms/GympieNP/gympienp.zip",
-      files = "C:/plos-visualization-paper/data/spectrograms/GympieNP/")
+      exdir = "C:/plos-visualization-paper/data/spectrograms/GympieNP")
 # Download the Woondum spectrograms
 u <- "https://data.researchdatafinder.qut.edu.au/dataset/c3e4340d-4f56-45bf-85a6-2adb5dbf3d6b/resource/313a2107-8963-40bf-9934-fe9cbe458260/download/woondumnp.zip"
 name <- basename(u)
 f <- paste0("C:/plos-visualization-paper/data/spectrograms/WoondumNP/", name, sep="")
+# Warning: This downloads 0.5 GB of information
 if (!file.exists(f)) {
-  download.file(u, file.path("C:/plos-visualization-paper/data/spectrograms/WoondumNP/", basename(u)))
+  download.file(u, destfile = paste("C:/plos-visualization-paper/data/spectrograms/WoondumNP/", basename(u), sep=""))
   rm(f, u)
 }
+setwd("C:\\plos-visualization-paper\\data\\")
 unzip(zipfile = "C:/plos-visualization-paper/data/spectrograms/WoondumNP/woondumnp.zip",
-      files = "C:/plos-visualization-paper/data/spectrograms/WoondumNP/")
+      exdir = "C:/plos-visualization-paper/data/spectrograms/WoondumNP")
 
 # Load (if necessary) and read the cluster list
 # Load the Gympie cluster list
@@ -98,8 +107,8 @@ cluster_list <- c(gympie_cluster_list, woondum_cluster_list)
 cluster_list <- c(cluster_list[[1]],cluster_list[[2]])
 
 # write cluster list csv files for each site
-write.csv(cluster_list[1:(length(cluster_list)/2)], "C:/plos-visualization-paper/data/gympie_cluster_list.csv", row.names = F)
-write.csv(cluster_list[(length(cluster_list)/2+1):(length(cluster_list))], "C:/plos-visualization-paper/data/woondum_cluster_list.csv", row.names = F)
+#write.csv(cluster_list[1:(length(cluster_list)/2)], "C:/plos-visualization-paper/data/gympie_cluster_list.csv", row.names = F)
+#write.csv(cluster_list[(length(cluster_list)/2+1):(length(cluster_list))], "C:/plos-visualization-paper/data/woondum_cluster_list.csv", row.names = F)
 
 k1_value <- 25000
 k2_value <- 60
@@ -132,7 +141,7 @@ library(raster)
 # plot and save an image containing a black rectangle into
 # a file named 'Rasterimage.pgn' this will be used to produce
 # the composite spectrograms
-tiff('C:/plos-visualization-paper/data/Rasterimage.tiff', 
+png('C:/plos-visualization-paper/data/Rasterimage.png', 
      width=615, height=668, 
      units='px', type='cairo', antialias=NULL)
 z <- matrix(0, ncol=615, nrow=668)
@@ -233,7 +242,7 @@ cluster_image <- function(clust_num) {
 dev.off()
 clusters <- c(59,42,29,37)
 for(j in clusters) {
-  print(paste("starting", j, Sys.time(), sep = " "))
+  print(paste("starting cluster", j, Sys.time(), sep = " "))
   cluster_image(j)
 }
 end_time <- paste(Sys.time())
